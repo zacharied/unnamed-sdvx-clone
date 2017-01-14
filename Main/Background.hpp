@@ -9,7 +9,7 @@ public:
 	virtual ~Background() = default;
 	virtual bool Init() = 0;
 	virtual void Render(float deltaTime) = 0;
-
+	virtual void SetAudioSampler(float* sampleBuffer, uint32 bufferLength) = 0;
 	class Game* game;
 };
 

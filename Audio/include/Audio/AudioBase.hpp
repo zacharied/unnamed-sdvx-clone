@@ -33,6 +33,9 @@ public:
 	// Removes a signal processor from the audio
 	void RemoveDSP(DSP* dsp);
 
+	float* GetBuffer();
+	uint32 GetBufferLength();
+
 	void Deregister();
 
 	// Stream volume from 0-1

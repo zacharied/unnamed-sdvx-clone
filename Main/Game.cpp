@@ -26,13 +26,13 @@ Ref<Beatmap> TryLoadMap(const String& path)
 	// Load map file
 	Beatmap* newMap = new Beatmap();
 	File mapFile;
-	if(!mapFile.OpenRead(path))
+	if (!mapFile.OpenRead(path))
 	{
 		delete newMap;
 		return Ref<Beatmap>();
 	}
 	FileReader reader(mapFile);
-	if(!newMap->Load(reader))
+	if (!newMap->Load(reader))
 	{
 		delete newMap;
 		return Ref<Beatmap>();
@@ -40,7 +40,7 @@ Ref<Beatmap> TryLoadMap(const String& path)
 	return Ref<Beatmap>(newMap);
 }
 
-/* 
+/*
 	Game implementation class
 */
 class Game_Impl : public Game
@@ -61,10 +61,10 @@ private:
 	// Map object approach speed, scaled by BPM
 	float m_hispeed = 1.0f;
 
-    // Use m-mod and what m-mod speed
-    bool m_usemMod = false;
-    bool m_usecMod = false;
-    float m_modSpeed = 400;
+	// Use m-mod and what m-mod speed
+	bool m_usemMod = false;
+	bool m_usecMod = false;
+	float m_modSpeed = 400;
 
 	// Game Canvas
 	Ref<Canvas> m_canvas;
@@ -132,23 +132,22 @@ public:
 
 		// Get Parent path
 		m_mapRootPath = Path::RemoveLast(m_mapPath, nullptr);
-
 		m_hispeed = g_gameConfig.GetFloat(GameConfigKeys::HiSpeed);
-        m_usemMod = g_gameConfig.GetBool(GameConfigKeys::UseMMod);
-        m_usecMod = g_gameConfig.GetBool(GameConfigKeys::UseCMod);
-        m_modSpeed = g_gameConfig.GetFloat(GameConfigKeys::ModSpeed);
+		m_usemMod = g_gameConfig.GetBool(GameConfigKeys::UseMMod);
+		m_usecMod = g_gameConfig.GetBool(GameConfigKeys::UseCMod);
+		m_modSpeed = g_gameConfig.GetFloat(GameConfigKeys::ModSpeed);
 	}
 	~Game_Impl()
 	{
-		if(m_track)
+		if (m_track)
 			delete m_track;
-		if(m_background)
+		if (m_background)
 			delete m_background;
 
 		// Save hispeed
 		g_gameConfig.Set(GameConfigKeys::HiSpeed, m_hispeed);
 
-		g_rootCanvas->Remove(m_canvas.As<GUIElementBase>()); 
+		g_rootCanvas->Remove(m_canvas.As<GUIElementBase>());
 
 		// In case the cursor was still hidden
 		g_gameWindow->SetCursorVisible(true);
@@ -159,7 +158,7 @@ public:
 	{
 		ProfilerScope $("AsyncLoad Game");
 
-		if(!Path::FileExists(m_mapPath))
+		if (!Path::FileExists(m_mapPath))
 		{
 			Logf("Couldn't find map at %s", Logger::Error, m_mapPath);
 			return false;
@@ -168,14 +167,14 @@ public:
 		m_beatmap = TryLoadMap(m_mapPath);
 
 		// Check failure of above loading attempts
-		if(!m_beatmap)
+		if (!m_beatmap)
 		{
 			Logf("Failed to load map", Logger::Warning);
 			return false;
 		}
 
 		// Enable debug functionality
-		if(g_application->GetAppCommandLine().Contains("-debug"))
+		if (g_application->GetAppCommandLine().Contains("-debug"))
 		{
 			m_renderDebugHUD = true;
 		}
@@ -187,51 +186,51 @@ public:
 		m_jacketImage = ImageRes::Create(jacketPath);
 
 
-        // Move this somewhere else?
-        // Set hi-speed for m-Mod
-        // Uses the "mode" of BPMs in the chart, should use median?
-        if(m_usemMod)
-        {
-            Map<double, MapTime> bpmDurations;
-            const Vector<TimingPoint*>& timingPoints = m_beatmap->GetLinearTimingPoints();
-            MapTime lastMT = 0;
-            MapTime largestMT = -1;
-            double useBPM = -1;
-            double lastBPM = -1;
-            for (TimingPoint* tp : timingPoints)
-            {
-                double thisBPM = tp->GetBPM();
-                if (!bpmDurations.count(thisBPM))
-                {
-                    bpmDurations[thisBPM] = 0;
-                }
-                MapTime timeSinceLastTP = tp->time - lastMT;
-                bpmDurations[thisBPM] += timeSinceLastTP;
-                if (bpmDurations[thisBPM] > largestMT)
-                {
-                    useBPM = thisBPM;
-                    largestMT = bpmDurations[thisBPM];
-                }
-                lastMT = tp->time;
-                lastBPM = thisBPM;
-            }
-            MapTime endTime = m_beatmap->GetLinearObjects().back()->time; 
-            bpmDurations[lastBPM] += endTime - lastMT;
+		// Move this somewhere else?
+		// Set hi-speed for m-Mod
+		// Uses the "mode" of BPMs in the chart, should use median?
+		if (m_usemMod)
+		{
+			Map<double, MapTime> bpmDurations;
+			const Vector<TimingPoint*>& timingPoints = m_beatmap->GetLinearTimingPoints();
+			MapTime lastMT = 0;
+			MapTime largestMT = -1;
+			double useBPM = -1;
+			double lastBPM = -1;
+			for (TimingPoint* tp : timingPoints)
+			{
+				double thisBPM = tp->GetBPM();
+				if (!bpmDurations.count(thisBPM))
+				{
+					bpmDurations[thisBPM] = 0;
+				}
+				MapTime timeSinceLastTP = tp->time - lastMT;
+				bpmDurations[thisBPM] += timeSinceLastTP;
+				if (bpmDurations[thisBPM] > largestMT)
+				{
+					useBPM = thisBPM;
+					largestMT = bpmDurations[thisBPM];
+				}
+				lastMT = tp->time;
+				lastBPM = thisBPM;
+			}
+			MapTime endTime = m_beatmap->GetLinearObjects().back()->time;
+			bpmDurations[lastBPM] += endTime - lastMT;
 
-            if (bpmDurations[lastBPM] > largestMT)
-            {
-                useBPM = lastBPM;
-            }
+			if (bpmDurations[lastBPM] > largestMT)
+			{
+				useBPM = lastBPM;
+			}
 
-            m_hispeed = m_modSpeed / useBPM; 
-        }
+			m_hispeed = m_modSpeed / useBPM;
+		}
 
 		// Initialize input/scoring
-		if(!InitGameplay())
+		if (!InitGameplay())
 			return false;
 
 		// Load beatmap audio
-		if(!m_audioPlayback.Init(m_playback, m_mapRootPath))
+		if (!m_audioPlayback.Init(m_playback, m_mapRootPath))
 			return false;
 
 		// Get fps limit
@@ -242,7 +241,7 @@ public:
 		// Load audio offset
 		m_audioOffset = g_gameConfig.GetInt(GameConfigKeys::GlobalOffset);
 
-		if(!InitSFX())
+		if (!InitSFX())
 			return false;
 
 		// Intialize track graphics
@@ -253,22 +252,22 @@ public:
 		loader.AddTexture(basicParticleTexture, "particle_flare.png");
 		loader.AddTexture(squareParticleTexture, "particle_square.png");
 
-		if(!InitHUD())
+		if (!InitHUD())
 			return false;
 
-		if(!loader.Load())
+		if (!loader.Load())
 			return false;
 
 		return true;
 	}
 	virtual bool AsyncFinalize() override
 	{
-		if(m_jacketImage)
+		if (m_jacketImage)
 		{
 			m_jacketTexture = TextureRes::Create(g_gl, m_jacketImage);
 		}
 
-		if(!loader.Finalize())
+		if (!loader.Finalize())
 			return false;
 
 		m_scoringGauge->fillMaterial->opaque = false;
@@ -315,16 +314,16 @@ public:
 		m_playback.Reset(m_lastMapTime);
 		m_scoring.Reset();
 
-		for(uint32 i = 0; i < 2; i++)
+		for (uint32 i = 0; i < 2; i++)
 		{
-			if(m_laserFollowEmitters[i])
+			if (m_laserFollowEmitters[i])
 			{
 				m_laserFollowEmitters[i].Release();
 			}
 		}
-		for(uint32 i = 0; i < 6; i++)
+		for (uint32 i = 0; i < 6; i++)
 		{
-			if(m_holdEmitters[i])
+			if (m_holdEmitters[i])
 			{
 				m_holdEmitters[i].Release();
 			}
@@ -335,23 +334,23 @@ public:
 	virtual void Tick(float deltaTime) override
 	{
 		// Lock mouse to screen when playing
-		if(g_gameConfig.GetEnum<Enum_InputDevice>(GameConfigKeys::LaserInputDevice) == InputDevice::Mouse)
+		if (g_gameConfig.GetEnum<Enum_InputDevice>(GameConfigKeys::LaserInputDevice) == InputDevice::Mouse)
 		{
-			if(!m_paused)
+			if (!m_paused)
 			{
-				if(!m_lockMouse)
+				if (!m_lockMouse)
 					m_lockMouse = g_input.LockMouse();
 				g_gameWindow->SetCursorVisible(false);
 			}
 			else
 			{
-				if(m_lockMouse)
+				if (m_lockMouse)
 					m_lockMouse.Release();
 				g_gameWindow->SetCursorVisible(true);
 			}
 		}
 
-		if(!m_paused)
+		if (!m_paused)
 			TickGameplay(deltaTime);
 	}
 	virtual void Render(float deltaTime) override
@@ -366,17 +365,21 @@ public:
 		m_camera.SetRollIntensity(m_rollIntensity);
 
 		// Set track zoom
-		if(!m_settingsBar->IsShown()) // Overridden settings?
+		if (!m_settingsBar->IsShown()) // Overridden settings?
 		{
 			m_camera.zoomBottom = m_playback.GetZoom(0);
 			m_camera.zoomTop = m_playback.GetZoom(1);
 		}
 		m_camera.track = m_track;
-		m_camera.Tick(deltaTime,m_playback);
+		m_camera.Tick(deltaTime, m_playback);
 		RenderState rs = m_camera.CreateRenderState(true);
 
 		// Draw BG first
+
 		m_background->Render(deltaTime);
+		float* sampleBuffer = m_audioPlayback.GetDSPTrack()->GetBuffer();
+		uint32 bufferlength = m_audioPlayback.GetDSPTrack()->GetBufferLength();
+		m_background->SetAudioSampler(sampleBuffer, bufferlength);
 
 		// Main render queue
 		RenderQueue renderQueue(g_gl, rs);
@@ -393,7 +396,7 @@ public:
 		{
 			auto ObjectRenderPriorty = [](const TObjectState<void>* a)
 			{
-				if(a->type == ObjectType::Single || a->type == ObjectType::Hold)
+				if (a->type == ObjectType::Single || a->type == ObjectType::Hold)
 					return (((ButtonObjectState*)a)->index < 4) ? 1 : 0;
 				else
 					return 2;
@@ -403,7 +406,7 @@ public:
 			return renderPriorityA < renderPriorityB;
 		});
 
-		for(auto& object : m_currentObjectSet)
+		for (auto& object : m_currentObjectSet)
 		{
 			m_track->DrawObjectState(renderQueue, m_playback, object, m_scoring.IsObjectHeld(object));
 		}
@@ -415,9 +418,9 @@ public:
 		RenderQueue scoringRq(g_gl, rs);
 
 		// Copy over laser position and extend info
-		for(uint32 i = 0; i < 2; i++)
+		for (uint32 i = 0; i < 2; i++)
 		{
-			if(m_scoring.IsLaserHeld(i))
+			if (m_scoring.IsLaserHeld(i))
 			{
 				m_track->laserPositions[i] = m_scoring.laserTargetPositions[i];
 				m_track->lasersAreExtend[i] = m_scoring.lasersAreExtend[i];
@@ -440,23 +443,23 @@ public:
 		scoringRq.Process();
 
 		// Set laser follow particle visiblity
-		for(uint32 i = 0; i < 2; i++)
+		for (uint32 i = 0; i < 2; i++)
 		{
-			if(m_scoring.IsLaserHeld(i))
+			if (m_scoring.IsLaserHeld(i))
 			{
-				if(!m_laserFollowEmitters[i])
+				if (!m_laserFollowEmitters[i])
 					m_laserFollowEmitters[i] = CreateTrailEmitter(m_track->laserColors[i]);
 
 				// Set particle position to follow laser
 				float followPos = m_scoring.laserTargetPositions[i];
 				if (m_scoring.lasersAreExtend[i])
-					followPos = followPos * 2.0f - 0.5f; 
+					followPos = followPos * 2.0f - 0.5f;
 
 				m_laserFollowEmitters[i]->position.x = m_track->trackWidth * followPos - m_track->trackWidth * 0.5f;
 			}
 			else
 			{
-				if(m_laserFollowEmitters[i])
+				if (m_laserFollowEmitters[i])
 				{
 					m_laserFollowEmitters[i].Release();
 				}
@@ -464,11 +467,11 @@ public:
 		}
 
 		// Set hold button particle visibility
-		for(uint32 i = 0; i < 6; i++)
+		for (uint32 i = 0; i < 6; i++)
 		{
-			if(m_scoring.IsObjectHeld(i))
+			if (m_scoring.IsObjectHeld(i))
 			{
-				if(!m_holdEmitters[i])
+				if (!m_holdEmitters[i])
 				{
 					Color hitColor = (i < 4) ? Color::White : Color::FromHSV(20, 0.7f, 1.0f);
 					float hitWidth = (i < 4) ? m_track->buttonWidth : m_track->fxbuttonWidth;
@@ -478,7 +481,7 @@ public:
 			}
 			else
 			{
-				if(m_holdEmitters[i])
+				if (m_holdEmitters[i])
 				{
 					m_holdEmitters[i].Release();
 				}
@@ -490,7 +493,7 @@ public:
 		RenderParticles(rs, deltaTime);
 
 		// Render debug hud if enabled
-		if(m_renderDebugHUD)
+		if (m_renderDebugHUD)
 		{
 			RenderDebugHUD(deltaTime);
 		}
@@ -532,7 +535,7 @@ public:
 			sb->AddSetting(&m_camera.cameraHeightBase, 0.01f, 1.0f, "Camera Height Base");
 			sb->AddSetting(&m_camera.cameraHeightMult, 0.0f, 2.0f, "Camera Height Mult");
 			sb->AddSetting(&m_hispeed, 0.25f, 16.0f, "HiSpeed multiplier");
-			sb->AddSetting(&m_scoring.laserDistanceLeniency, 1.0f/32.0f, 1.0f, "Laser Distance Leniency");
+			sb->AddSetting(&m_scoring.laserDistanceLeniency, 1.0f / 32.0f, 1.0f, "Laser Distance Leniency");
 			m_settingsBar->SetShow(false);
 
 			Canvas::Slot* settingsSlot = m_canvas->Add(sb->MakeShared());
@@ -576,13 +579,13 @@ public:
 		// Select the correct first object to set the intial playback position
 		// if it starts before a certain time frame, the song starts at a negative time (lead-in)
 		ObjectState *const* firstObj = &m_beatmap->GetLinearObjects().front();
-		while((*firstObj)->type == ObjectType::Event && firstObj != &m_beatmap->GetLinearObjects().back())
+		while ((*firstObj)->type == ObjectType::Event && firstObj != &m_beatmap->GetLinearObjects().back())
 		{
 			firstObj++;
 		}
 		m_lastMapTime = 0;
 		MapTime firstObjectTime = (*firstObj)->time;
-		if(firstObjectTime < 1000)
+		if (firstObjectTime < 1000)
 		{
 			// Set start time
 			m_lastMapTime = firstObjectTime - 5000;
@@ -610,11 +613,11 @@ public:
 		m_playback.OnLaserAlertEntered.Add(this, &Game_Impl::OnLaserAlertEntered);
 		m_playback.Reset();
 
-        // If c-mod is used
-        if (m_usecMod)
-        {
-            m_playback.OnTimingPointChanged.Add(this, &Game_Impl::OnTimingPointChanged);
-        }
+		// If c-mod is used
+		if (m_usecMod)
+		{
+			m_playback.OnTimingPointChanged.Add(this, &Game_Impl::OnTimingPointChanged);
+		}
 		// Register input bindings
 		m_scoring.OnButtonMiss.Add(this, &Game_Impl::OnButtonMiss);
 		m_scoring.OnLaserSlamHit.Add(this, &Game_Impl::OnLaserSlamHit);
@@ -626,7 +629,7 @@ public:
 
 		m_playback.hittableObjectTreshold = Scoring::goodHitTime;
 
-		if(g_application->GetAppCommandLine().Contains("-autobuttons"))
+		if (g_application->GetAppCommandLine().Contains("-autobuttons"))
 		{
 			m_scoring.autoplayButtons = true;
 		}
@@ -636,13 +639,13 @@ public:
 	// Processes input and Updates scoring, also handles audio timing management
 	void TickGameplay(float deltaTime)
 	{
-		if(!m_started)
+		if (!m_started)
 		{
 			// Start playback of audio in first gameplay tick
 			m_audioPlayback.Play();
 			m_started = true;
 
-			if(g_application->GetAppCommandLine().Contains("-autoskip"))
+			if (g_application->GetAppCommandLine().Contains("-autoskip"))
 			{
 				SkipIntro();
 			}
@@ -657,7 +660,7 @@ public:
 		MapTime delta = playbackPositionMs - m_lastMapTime;
 		int32 beatStart = 0;
 		uint32 numBeats = m_playback.CountBeats(m_lastMapTime, delta, beatStart, 1);
-		if(numBeats > 0)
+		if (numBeats > 0)
 		{
 			// Click Track
 			//uint32 beat = beatStart % m_playback.GetCurrentTimingPoint().measure;
@@ -685,21 +688,21 @@ public:
 		// Update scoring gauge
 		m_scoringGauge->rate = m_scoring.currentGauge;
 
-        // Update hispeed
-        if (g_input.GetButton(Input::Button::BT_S))
-        {
-            for (int i = 0; i < 2; i++)
-            {
-                m_hispeed += g_input.GetInputLaserDir(i);
-            }
-        }
+		// Update hispeed
+		if (g_input.GetButton(Input::Button::BT_S))
+		{
+			for (int i = 0; i < 2; i++)
+			{
+				m_hispeed += g_input.GetInputLaserDir(i);
+			}
+		}
 
 		// Get the current timing point
 		m_currentTiming = &m_playback.GetCurrentTimingPoint();
 
 		m_lastMapTime = playbackPositionMs;
 
-		if(m_audioPlayback.HasEnded())
+		if (m_audioPlayback.HasEnded())
 		{
 			FinishGame();
 		}
@@ -708,7 +711,7 @@ public:
 	// Called when game is finished and the score screen should show up
 	void FinishGame()
 	{
-		if(m_ended)
+		if (m_ended)
 			return;
 
 		// Transition to score screen
@@ -729,7 +732,7 @@ public:
 		// Render particle effects
 		m_particleSystem->Render(rs, deltaTime);
 	}
-	
+
 	Ref<ParticleEmitter> CreateTrailEmitter(const Color& color)
 	{
 		Ref<ParticleEmitter> emitter = m_particleSystem->AddEmitter();
@@ -810,7 +813,7 @@ public:
 		emitter->SetStartDrag(PPConstant<float>(6.0f));
 		emitter->SetSpawnVelocityScale(PPConstant<float>(0.0f));
 		emitter->SetScaleOverTime(PPRange<float>(1.0f, 0.4f));
-		emitter->SetStartVelocity(PPCone(Vector3(0,0,-1), 90.0f, 1.0f, 4.0f));
+		emitter->SetStartVelocity(PPCone(Vector3(0, 0, -1), 90.0f, 1.0f, 4.0f));
 		emitter->SetStartColor(PPConstant<Color>(color));
 		return emitter;
 	}
@@ -853,16 +856,16 @@ public:
 		Vector2 buttonStateTextPos = Vector2(g_resolution.x - 200.0f, 100.0f);
 		RenderText(g_input.GetControllerStateString(), buttonStateTextPos);
 
-		if(m_scoring.autoplay)
+		if (m_scoring.autoplay)
 			textPos.y += RenderText("Autoplay enabled", textPos, Color::Blue).y;
 
 		// List recent hits and their delay
 		Vector2 tableStart = textPos;
 		uint32 hitsShown = 0;
 		// Show all hit debug info on screen (up to a maximum)
-		for(auto it = m_scoring.hitStats.rbegin(); it != m_scoring.hitStats.rend(); it++)
+		for (auto it = m_scoring.hitStats.rbegin(); it != m_scoring.hitStats.rend(); it++)
 		{
-			if(hitsShown++ > 16) // Max of 16 entries to display
+			if (hitsShown++ > 16) // Max of 16 entries to display
 				break;
 
 
@@ -872,20 +875,20 @@ public:
 				Color::Green,
 			};
 			Color c = hitColors[(size_t)(*it)->rating];
-			if((*it)->hasMissed && (*it)->hold > 0)
+			if ((*it)->hasMissed && (*it)->hold > 0)
 				c = Color(1, 0.65f, 0);
 			String text;
 
 			MultiObjectState* obj = *(*it)->object;
-			if(obj->type == ObjectType::Single)
+			if (obj->type == ObjectType::Single)
 			{
 				text = Utility::Sprintf("[%d] %d", obj->button.index, (*it)->delta);
 			}
-			else if(obj->type == ObjectType::Hold)
+			else if (obj->type == ObjectType::Hold)
 			{
 				text = Utility::Sprintf("Hold [%d] [%d/%d]", obj->button.index, (*it)->hold, (*it)->holdMax);
 			}
-			else if(obj->type == ObjectType::Laser)
+			else if (obj->type == ObjectType::Laser)
 			{
 				text = Utility::Sprintf("Laser [%d] [%d/%d]", obj->laser.index, (*it)->hold, (*it)->holdMax);
 			}
@@ -897,8 +900,8 @@ public:
 
 	void OnLaserSlamHit(LaserObjectState* object)
 	{
-		CameraShake shake(0.2f, 0.5f, 170.0f);
-		shake.amplitude = Vector3(0.02f, 0.01f, 0.0f); // Mainly x-axis
+		CameraShake shake(0.1f, 0.5f, 60.0f);
+		shake.amplitude = Vector3(0.1f, 0.01f, 0.0f); // Mainly x-axis
 		m_camera.AddCameraShake(shake);
 		m_slamSample->Play();
 
@@ -915,7 +918,7 @@ public:
 		// The color effect in the button lane
 		m_track->AddEffect(new ButtonHitEffect(buttonIdx, c));
 
-		if(rating != ScoreHitRating::Idle)
+		if (rating != ScoreHitRating::Idle)
 		{
 			// Floating text effect
 			m_track->AddEffect(new ButtonHitRatingEffect(buttonIdx, rating));
@@ -942,7 +945,7 @@ public:
 	void OnScoreChanged(uint32 newScore)
 	{
 		// Update score text
-		if(m_scoreText)
+		if (m_scoreText)
 		{
 			m_scoreText->SetText(Utility::WSprintf(L"%08d", newScore));
 		}
@@ -951,10 +954,10 @@ public:
 	// These functions control if FX button DSP's are muted or not
 	void OnObjectHold(Input::Button, ObjectState* object)
 	{
-		if(object->type == ObjectType::Hold)
+		if (object->type == ObjectType::Hold)
 		{
 			HoldObjectState* hold = (HoldObjectState*)object;
-			if(hold->effectType != EffectType::None)
+			if (hold->effectType != EffectType::None)
 			{
 				m_audioPlayback.SetEffectEnabled(hold->index - 4, true);
 			}
@@ -962,10 +965,10 @@ public:
 	}
 	void OnObjectReleased(Input::Button, ObjectState* object)
 	{
-		if(object->type == ObjectType::Hold)
+		if (object->type == ObjectType::Hold)
 		{
 			HoldObjectState* hold = (HoldObjectState*)object;
-			if(hold->effectType != EffectType::None)
+			if (hold->effectType != EffectType::None)
 			{
 				m_audioPlayback.SetEffectEnabled(hold->index - 4, false);
 			}
@@ -973,34 +976,34 @@ public:
 	}
 
 
-    void OnTimingPointChanged(TimingPoint* tp)
-    {
-       m_hispeed = m_modSpeed / tp->GetBPM(); 
-    }
+	void OnTimingPointChanged(TimingPoint* tp)
+	{
+		m_hispeed = m_modSpeed / tp->GetBPM();
+	}
 
 
 	void OnEventChanged(EventKey key, EventData data)
 	{
-		if(key == EventKey::LaserEffectType)
+		if (key == EventKey::LaserEffectType)
 		{
 			m_audioPlayback.SetLaserEffect(data.effectVal);
 		}
-		else if(key == EventKey::LaserEffectMix)
+		else if (key == EventKey::LaserEffectMix)
 		{
 			m_audioPlayback.SetLaserEffectMix(data.floatVal);
 		}
-		else if(key == EventKey::TrackRollBehaviour)
+		else if (key == EventKey::TrackRollBehaviour)
 		{
 			m_camera.rollKeep = (data.rollVal & TrackRollBehaviour::Keep) == TrackRollBehaviour::Keep;
 			int32 i = (uint8)data.rollVal & 0x3;
-			if(i == 0)
+			if (i == 0)
 				m_rollIntensity = 0;
 			else
 			{
 				m_rollIntensity = m_rollIntensityBase + (float)(i - 1) * 0.0125f;
 			}
 		}
-		else if(key == EventKey::SlamVolume)
+		else if (key == EventKey::SlamVolume)
 		{
 			m_slamSample->SetVolume(data.floatVal);
 		}
@@ -1029,34 +1032,34 @@ public:
 
 	virtual void OnKeyPressed(Key key) override
 	{
-		if(key == Key::Pause)
+		if (key == Key::Pause)
 		{
 			m_audioPlayback.TogglePause();
 			m_paused = m_audioPlayback.IsPaused();
 		}
-		else if(key == Key::Return) // Skip intro
+		else if (key == Key::Return) // Skip intro
 		{
-			if(!SkipIntro())
+			if (!SkipIntro())
 				SkipOutro();
 		}
-		else if(key == Key::PageUp)
+		else if (key == Key::PageUp)
 		{
 			m_audioPlayback.Advance(5000);
 		}
-		else if(key == Key::Escape)
+		else if (key == Key::Escape)
 		{
 			FinishGame();
 		}
-		else if(key == Key::F5) // Restart map
+		else if (key == Key::F5) // Restart map
 		{
 			// Restart
 			Restart();
 		}
-		else if(key == Key::F8)
+		else if (key == Key::F8)
 		{
 			m_renderDebugHUD = !m_renderDebugHUD;
 		}
-		else if(key == Key::Tab)
+		else if (key == Key::Tab)
 		{
 			m_settingsBar->SetShow(!m_settingsBar->IsShown());
 		}
@@ -1066,12 +1069,12 @@ public:
 	bool SkipIntro()
 	{
 		ObjectState *const* firstObj = &m_beatmap->GetLinearObjects().front();
-		while((*firstObj)->type == ObjectType::Event && firstObj != &m_beatmap->GetLinearObjects().back())
+		while ((*firstObj)->type == ObjectType::Event && firstObj != &m_beatmap->GetLinearObjects().back())
 		{
 			firstObj++;
 		}
 		MapTime skipTime = (*firstObj)->time - 1000;
-		if(skipTime > m_lastMapTime)
+		if (skipTime > m_lastMapTime)
 		{
 			m_audioPlayback.SetPosition(skipTime);
 			return true;
@@ -1082,7 +1085,7 @@ public:
 	void SkipOutro()
 	{
 		// Just to be sure
-		if(m_beatmap->GetLinearObjects().empty())
+		if (m_beatmap->GetLinearObjects().empty())
 		{
 			FinishGame();
 			return;
@@ -1091,7 +1094,7 @@ public:
 		// Check if last object has passed
 		ObjectState *const* lastObj = &m_beatmap->GetLinearObjects().back();
 		MapTime timePastEnd = m_lastMapTime - (*lastObj)->time;
-		if(timePastEnd > 250)
+		if (timePastEnd > 250)
 		{
 			FinishGame();
 		}
@@ -1104,7 +1107,7 @@ public:
 
 	virtual bool GetTickRate(int32& rate) override
 	{
-		if(!m_audioPlayback.IsPaused())
+		if (!m_audioPlayback.IsPaused())
 		{
 			rate = m_fpsTarget;
 			return true;

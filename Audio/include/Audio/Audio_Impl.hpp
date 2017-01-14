@@ -33,7 +33,7 @@ public:
 
 	// Used to limit rendering to a fixed number of samples (512)
 	float* m_sampleBuffer = nullptr;
-	uint32 m_sampleBufferLength = 384;
+	uint32 m_sampleBufferLength = 3072;
 	uint32 m_remainingSamples = 0;
 
 	thread audioThread;

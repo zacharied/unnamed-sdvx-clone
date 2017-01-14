@@ -47,6 +47,24 @@ void AudioBase::RemoveDSP(DSP* dsp)
 	audio->lock.unlock();
 }
 
+float* AudioBase::GetBuffer()
+{
+	if (audio)
+	{
+		return audio->m_sampleBuffer;
+	}
+	return nullptr;
+}
+
+uint32 AudioBase::GetBufferLength()
+{
+	if (audio)
+	{
+		return audio->m_sampleBufferLength;
+	}
+	return 0;
+}
+
 void AudioBase::Deregister()
 {
 	// Remove from audio manager

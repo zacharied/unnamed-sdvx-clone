@@ -132,7 +132,7 @@ void AudioPlayback::SetEffect(uint32 index, HoldObjectState* object, class Beatm
 	DSP*& dsp = m_buttonDSPs[index];
 
 	m_buttonEffects[index] = m_beatmap->GetEffect(object->effectType);
-	dsp = m_buttonEffects[index].CreateDSP(m_GetDSPTrack().GetData(), *this);
+	dsp = m_buttonEffects[index].CreateDSP(GetDSPTrack().GetData(), *this);
 
 	if(dsp)
 	{
@@ -179,7 +179,7 @@ void AudioPlayback::SetLaserFilterInput(float input, bool active)
 			if(m_fxtrack.IsValid() && m_laserEffectType == EffectType::Bitcrush)
 				return;
 
-			m_laserDSP = m_laserEffect.CreateDSP(m_GetDSPTrack().GetData(), *this);
+			m_laserDSP = m_laserEffect.CreateDSP(GetDSPTrack().GetData(), *this);
 			if(!m_laserDSP)
 			{
 				Logf("Failed to create laser DSP with type %d", Logger::Warning, m_laserEffect.type);
@@ -209,7 +209,7 @@ float AudioPlayback::GetLaserEffectMix() const
 {
 	return m_laserEffectMix;
 }
-AudioStream AudioPlayback::m_GetDSPTrack()
+AudioStream AudioPlayback::GetDSPTrack()
 {
     if(m_fxtrack)
         return m_fxtrack;
@@ -250,7 +250,7 @@ void AudioPlayback::m_CleanupDSP(DSP*& ptr)
 {
 	if(ptr)
 	{
-		m_GetDSPTrack()->RemoveDSP(ptr);
+		GetDSPTrack()->RemoveDSP(ptr);
 		delete ptr;
 		ptr = nullptr;
 	}
