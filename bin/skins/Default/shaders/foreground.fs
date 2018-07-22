@@ -1,8 +1,6 @@
-#version 330
-#extension GL_ARB_separate_shader_objects : enable
+precision mediump float;
 
-layout(location=1) in vec2 texVp;
-layout(location=0) out vec4 target;
+varying vec2 texVp;
 
 uniform ivec2 screenCenter;
 // x = bar time
@@ -23,5 +21,5 @@ uniform float clearTransition;
 
 void main()
 {
-    target = vec4(0);
+    gl_FragColor = vec4(0.0);
 }

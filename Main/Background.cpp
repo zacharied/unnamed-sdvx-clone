@@ -149,15 +149,7 @@ class TestBackground : public FullscreenBackground
 		String skin = g_gameConfig.GetString(GameConfigKeys::Skin);
 		String pathV = String("skins/" + skin + "/shaders/") + "background" + ".vs";
 		String pathF = path;
-		String pathG = String("skins/" + skin + "/shaders/") + "background" + ".gs";
 		Material ret = MaterialRes::Create(g_gl, pathV, pathF);
-		// Additionally load geometry shader
-		if (Path::FileExists(pathG))
-		{
-			Shader gshader = ShaderRes::Create(g_gl, ShaderType::Geometry, pathG);
-			assert(gshader);
-			ret->AssignShader(ShaderType::Geometry, gshader);
-		}
 		assert(ret);
 		return ret;
 	}

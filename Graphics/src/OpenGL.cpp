@@ -72,9 +72,9 @@ namespace Graphics
 		m_window = &window;
 		SDL_Window* sdlWnd = (SDL_Window*)m_window->Handle();
 
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 
 		// Create a context
 		m_impl->context = SDL_GL_CreateContext(sdlWnd);
@@ -121,9 +121,6 @@ namespace Graphics
 
 		InitResourceManagers();
 
-		// Create pipeline for the program
-		glGenProgramPipelines(1, &m_mainProgramPipeline);
-		glBindProgramPipeline(m_mainProgramPipeline);
 		glDisable(GL_DEPTH_TEST);
 		glEnable(GL_CULL_FACE);
 		glEnable(GL_TEXTURE_2D);

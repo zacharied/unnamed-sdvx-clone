@@ -1,8 +1,6 @@
-#version 330
-#extension GL_ARB_separate_shader_objects : enable
+precision mediump float;
 
-layout(location=1) in vec2 fsTex;
-layout(location=0) out vec4 target;
+varying vec2 fsTex;
 
 uniform sampler2D mainTex;
 uniform vec4 lCol;
@@ -11,7 +9,7 @@ uniform float hidden;
 
 void main()
 {	
-	vec4 mainColor = texture(mainTex, fsTex.xy);
+	vec4 mainColor = texture2D(mainTex, fsTex.xy);
     vec4 col = mainColor;
 
     if(fsTex.y > hidden * 0.6)
@@ -30,5 +28,5 @@ void main()
         col.xyz = vec3(0.);
         col.a = col.a > 0.0 ? 0.3 : 0.0;
     }
-    target = col;
+    gl_FragColor = col;
 }

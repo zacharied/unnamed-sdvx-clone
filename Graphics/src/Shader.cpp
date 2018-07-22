@@ -21,7 +21,7 @@ namespace Graphics
 	class Shader_Impl : public ShaderRes
 	{
 		ShaderType m_type;
-		uint32 m_prog;
+		uint32 m_shader;
 		OpenGL* m_gl;
 
 		String m_sourcePath;
@@ -38,9 +38,9 @@ namespace Graphics
 		~Shader_Impl()
 		{
 			// Cleanup OpenGL resource
-			if(glIsProgram(m_prog))
+			if(glIsShader(m_shader))
 			{
-				glDeleteProgram(m_prog);
+				glDeleteShader(m_shader);
 			}
 
 #ifdef _WIN32
@@ -64,7 +64,7 @@ namespace Graphics
 			m_changeNotification = FindFirstChangeNotificationA(*rootFolder, false, FILE_NOTIFY_CHANGE_LAST_WRITE);
 #endif
 		}
-		bool LoadProgram(uint32& programOut)
+		bool LoadProgram()
 		{
 			File in;
 			if(!in.OpenRead(m_sourcePath))
@@ -76,19 +76,23 @@ namespace Graphics
 				return false;
 
 			in.Read(&sourceStr.front(), sourceStr.size());
+			const GLint programsize = sourceStr.size();
 
 			const char* pChars = *sourceStr;
-			programOut = glCreateShaderProgramv(typeMap[(size_t)m_type], 1, &pChars);
-			if(programOut == 0)
-				return false;
+			glShaderSource(m_shader, 1, &pChars, &programsize);
+			glCompileShader(m_shader);
+
+			//programOut = glCreateShaderProgramv(typeMap[(size_t)m_type], 1, &pChars);
+			//if(programOut == 0)
+			//	return false;
 
 			int nStatus = 0;
-			glGetProgramiv(programOut, GL_LINK_STATUS, &nStatus);
-			if(nStatus == 0)
+			glGetShaderiv(m_shader, GL_COMPILE_STATUS, &nStatus);
+			if(nStatus == GL_FALSE)
 			{
 				static char infoLogBuffer[2048];
 				int s = 0;
-				glGetProgramInfoLog(programOut, sizeof(infoLogBuffer), &s, infoLogBuffer);
+				glGetShaderInfoLog(m_shader, sizeof(infoLogBuffer), &s, infoLogBuffer);
 
 				Logf("Shader program compile log for %s: %s", Logger::Error, m_sourcePath, infoLogBuffer);
 				return false;
@@ -112,11 +116,8 @@ namespace Graphics
 					uint64 newLwt = File::GetLastWriteTime(m_sourcePath);
 					if(newLwt != -1 && newLwt > m_lwt)
 					{
-						uint32 newProgram = 0;
-						if(LoadProgram(newProgram))
+						if(LoadProgram())
 						{
-							// Successfully reloaded
-							m_prog = newProgram;
 							return true;
 						}
 					}
@@ -133,77 +134,13 @@ namespace Graphics
 		{
 			m_sourcePath = Path::Normalize(name);
 			m_type = type;
-			return LoadProgram(m_prog);
-		}
-
-		virtual void Bind()
-		{
-			if(m_gl->m_activeShaders[(size_t)m_type] != this)
-			{
-				glUseProgramStages(m_gl->m_mainProgramPipeline, shaderStageMap[(size_t)m_type], m_prog);
-				m_gl->m_activeShaders[(size_t)m_type] = this;
-			}
-		}
-		virtual bool IsBound() const
-		{
-			return m_gl->m_activeShaders[(size_t)m_type] == this;
-		}
-		virtual uint32 GetLocation(const String& name) const
-		{
-			return glGetUniformLocation(m_prog, name.c_str());
-		}
-		virtual void BindUniform(uint32 loc, const Transform& mat)
-		{
-			glProgramUniformMatrix4fv(m_prog, loc, 1, false, mat.mat);
-		}
-		virtual void BindUniformVec2(uint32 loc, const Vector2& v)
-		{
-			glProgramUniform2fv(m_prog, loc, 1, &v.x);
-		}
-		virtual void BindUniformVec3(uint32 loc, const Vector3& v)
-		{
-			glProgramUniform3fv(m_prog, loc, 1, &v.x);
-		}
-		virtual void BindUniformVec4(uint32 loc, const Vector4& v)
-		{
-			glProgramUniform4fv(m_prog, loc, 1, &v.x);
-		}
-		virtual void BindUniform(uint32 loc, int i)
-		{
-			glProgramUniform1i(m_prog, loc, i);
-		}
-		virtual void BindUniform(uint32 loc, float i)
-		{
-			glProgramUniform1f(m_prog, loc, i);
-		}
-		virtual void BindUniformArray(uint32 loc, const Transform* mat, size_t count)
-		{
-			glProgramUniformMatrix4fv(m_prog, loc, (int)count, false, (float*)mat);
-		}
-		virtual void BindUniformArray(uint32 loc, const Vector2* v2, size_t count)
-		{
-			glProgramUniform2fv(m_prog, loc, (int)count, (float*)v2);
-		}
-		virtual void BindUniformArray(uint32 loc, const Vector3* v3, size_t count)
-		{
-			glProgramUniform3fv(m_prog, loc, (int)count, (float*)v3);
-		}
-		virtual void BindUniformArray(uint32 loc, const Vector4* v4, size_t count)
-		{
-			glProgramUniform4fv(m_prog, loc, (int)count, (float*)v4);
-		}
-		virtual void BindUniformArray(uint32 loc, const float* i, size_t count)
-		{
-			glProgramUniform1fv(m_prog, loc, (int)count, i);
-		}
-		virtual void BindUniformArray(uint32 loc, const int* i, size_t count)
-		{
-			glProgramUniform1iv(m_prog, loc, (int)count, i);
+			m_shader = glCreateShader(typeMap[(size_t)m_type]);
+			return LoadProgram();
 		}
 
 		virtual uint32 Handle() override
 		{
-			return m_prog;
+			return m_shader;
 		}
 
 		String GetOriginalName() const

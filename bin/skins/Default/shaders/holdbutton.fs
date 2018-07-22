@@ -1,8 +1,6 @@
-#version 330
-#extension GL_ARB_separate_shader_objects : enable
+precision mediump float;
 
-layout(location=1) in vec2 fsTex;
-layout(location=0) out vec4 target;
+varying vec2 fsTex;
 
 uniform sampler2D mainTex;
 uniform float objectGlow;
@@ -12,8 +10,8 @@ uniform int hitState;
 
 void main()
 {	
-	vec4 mainColor = texture(mainTex, fsTex.xy);
-	target = mainColor;
-	target.xyz = target.xyz * (1.0f + objectGlow * 0.3f);
-	target.a = min(1, target.a + target.a * objectGlow * 0.9);
+	vec4 mainColor = texture2D(mainTex, fsTex.xy);
+	gl_FragColor = mainColor;
+	gl_FragColor.xyz = gl_FragColor.xyz * (1.0 + objectGlow * 0.3);
+	gl_FragColor.a = min(1.0, gl_FragColor.a + gl_FragColor.a * objectGlow * 0.9);
 }

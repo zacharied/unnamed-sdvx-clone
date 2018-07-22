@@ -1,13 +1,11 @@
-#version 330
-#extension GL_ARB_separate_shader_objects : enable
+precision mediump float;
 
-layout(location=1) in vec4 fsColor;
-layout(location=2) in vec2 fsTex;
-layout(location=0) out vec4 target;
+varying vec4 fsColor;
+varying vec2 fsTex;
 
 uniform sampler2D mainTex;
 		
 void main()
 {
-	target = fsColor * texture(mainTex, fsTex);
+	gl_FragColor = fsColor * texture2D(mainTex, fsTex);
 }

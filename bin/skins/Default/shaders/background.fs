@@ -1,16 +1,14 @@
-#version 330
-#extension GL_ARB_separate_shader_objects : enable
+precision mediump float;
 
-layout(location=1) in vec2 texVp;
-layout(location=0) out vec4 target;
+varying vec2 texVp;
 
 uniform ivec2 screenCenter;
 // x = bar time
-// y = object glow
+// y = object gl_FragColor
 // z = real time since song start
 uniform vec3 timing;
 uniform ivec2 viewport;
-uniform float objectGlow;
+uniform float objectgl_FragColor;
 // bg_texture.png
 uniform sampler2D mainTex;
 uniform float tilt;
@@ -72,7 +70,7 @@ float GetDistanceShape(vec2 st, int N){
   float Stretch = .3; 
 
   // Speed
-  float speed = 1;
+  float speed = 1.0;
 
   // Default rotation in radians
   float BaseRotation = 0.0;
@@ -85,9 +83,9 @@ float GetDistanceShape(vec2 st, int N){
 
 void main()
 {
-    float ar = float(viewport.x) / viewport.y;
+    float ar = float(viewport.x) / float(viewport.y);
     
-	vec2 uv = vec2(texVp.x / viewport.x, texVp.y / viewport.y);
+	vec2 uv = vec2(texVp.x / float(viewport.x), texVp.y / float(viewport.y));
     uv.x *= ar;
     
     vec2 center = vec2(screenCenter) / vec2(viewport);
@@ -107,15 +105,15 @@ void main()
     
     float rot = (atan(point_diff.x,point_diff.y) + BaseTexRotation) / TWO_PI;
 
-    vec4 col = texture(mainTex, vec2(rot,texY));
+    vec4 col = texture2D(mainTex, vec2(rot,texY));
     float hsvVal = (col.x + col.y + col.z) / 3.0;
-    vec4 clear_col = vec4(hsv2rgb(vec3(cos(rot * 10) + 0.4, 1.0, hsvVal)), col.a);
+    vec4 clear_col = vec4(hsv2rgb(vec3(cos(rot * 10.0) + 0.4, 1.0, hsvVal)), col.a);
 
     col.xyz *= (1.0 - clearTransition);
-    col.xyz += clear_col.xyz * clearTransition * 2;
+    col.xyz += clear_col.xyz * clearTransition * 2.0;
     col.xyz *= 1.0 + (clearTransition);
     col.xyz *= vec3(fog);
     col *= col.a;
-    target.xyz = col.xyz;
-    target.a = 1.0;
+    gl_FragColor.xyz = col.xyz;
+    gl_FragColor.a = 1.0;
 }

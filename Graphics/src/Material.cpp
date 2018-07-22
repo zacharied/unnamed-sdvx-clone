@@ -68,7 +68,7 @@ namespace Graphics
 #if _DEBUG
 		String m_debugNames[3];
 #endif
-		uint32 m_pipeline;
+		uint32 m_program;
 		Map<uint32, BoundParameterList> m_boundParameters;
 		Map<String, uint32> m_mappedParameters;
 		Map<String, uint32> m_textureIDs;
@@ -77,31 +77,36 @@ namespace Graphics
 
 		Material_Impl(OpenGL* gl) : m_gl(gl)
 		{
-			glGenProgramPipelines(1, &m_pipeline);
+			m_program = glCreateProgram();
+
 		}
 		~Material_Impl()
 		{
-			glDeleteProgramPipelines(1, &m_pipeline);
+			if (glIsProgram(m_program))
+			{
+				glDeleteProgram(m_program);
+			}
 		}
 		void AssignShader(ShaderType t, Shader shader)
 		{
 			m_shaders[(size_t)t] = shader;
 
 			uint32 handle = shader->Handle();
-
+			glAttachShader(m_program, handle);
+			glLinkProgram(m_program);
 #ifdef _DEBUG
 			Logf("Listing shader uniforms for %s", Logger::Info, shader->GetOriginalName());
 #endif // _DEBUG
 
 			int32 numUniforms;
-			glGetProgramiv(handle, GL_ACTIVE_UNIFORMS, &numUniforms);
+			glGetProgramiv(m_program, GL_ACTIVE_UNIFORMS, &numUniforms);
 			for(int32 i = 0; i < numUniforms; i++)
 			{
 				char name[64];
 				int32 nameLen, size;
 				uint32 type;
-				glGetActiveUniform(handle, i, sizeof(name), &nameLen, &size, &type, name);
-				uint32 loc = glGetUniformLocation(handle, name);
+				glGetActiveUniform(m_program, i, sizeof(name), &nameLen, &size, &type, name);
+				uint32 loc = glGetUniformLocation(m_program, name);
 
 				// Select type
 				uint32 textureID = 0;
@@ -155,7 +160,6 @@ namespace Graphics
 #endif // _DEBUG
 			}
 
-			glUseProgramStages(m_pipeline, shaderStageMap[(size_t)t], shader->Handle());
 		}
 
 		// Bind render state and params and shaders to context
@@ -184,9 +188,11 @@ namespace Graphics
 				{
 					if(m_shaders[i])
 						AssignShader(ShaderType(i), m_shaders[i]);
+					glLinkProgram(m_program);
 				}
 			}
 #endif
+			BindToContext();
 
 			// Bind renderstate variables
 			BindAll(SV_Proj, rs.projectionTransform);
@@ -200,7 +206,6 @@ namespace Graphics
 			// Bind parameters
 			BindParameters(params, rs.worldTransform);
 
-			BindToContext();
 		}
 
 		// Bind only parameters
@@ -263,10 +268,15 @@ namespace Graphics
 			}
 		}
 
+		uint32 Handle()
+		{
+			return m_program;
+		}
+
 		virtual void BindToContext()
 		{
 			// Bind pipeline to context
-			glBindProgramPipeline(m_pipeline);
+			glUseProgram(m_program);
 		}
 
 		BoundParameterInfo* GetBoundParameters(const String& name, uint32& count)
@@ -290,6 +300,7 @@ namespace Graphics
 		template<typename T> void BindAll(const String& name, const T& obj)
 		{
 			uint32 num = 0;
+			glUseProgram(m_program);
 			BoundParameterInfo* bp = GetBoundParameters(name, num);
 			for(uint32 i = 0; bp && i < num; i++)
 			{
@@ -299,6 +310,7 @@ namespace Graphics
 		template<typename T> void BindAll(BuiltInShaderVariable bsv, const T& obj)
 		{
 			uint32 num = 0;
+			glUseProgram(m_program);
 			BoundParameterInfo* bp = GetBoundParameters(bsv, num);
 			for(uint32 i = 0; bp && i < num; i++)
 			{
@@ -314,44 +326,44 @@ namespace Graphics
 	
 	template<> void Material_Impl::BindShaderVar<Vector4>(uint32 shader, uint32 loc, const Vector4& obj)
 	{
-		glProgramUniform4fv(shader, loc, 1, &obj.x);
+		glUniform4fv(loc, 1, &obj.x);
 	}
 	template<> void Material_Impl::BindShaderVar<Vector3>(uint32 shader, uint32 loc, const Vector3& obj)
 	{
-		glProgramUniform3fv(shader, loc, 1, &obj.x);
+		glUniform3fv(loc, 1, &obj.x);
 	}
 	template<> void Material_Impl::BindShaderVar<Vector2>(uint32 shader, uint32 loc, const Vector2& obj)
 	{
-		glProgramUniform2fv(shader, loc, 1, &obj.x);
+		glUniform2fv(loc, 1, &obj.x);
 	}
 	template<> void Material_Impl::BindShaderVar<float>(uint32 shader, uint32 loc, const float& obj)
 	{
-		glProgramUniform1fv(shader, loc, 1, &obj);
+		glUniform1fv(loc, 1, &obj);
 	}
 	template<> void Material_Impl::BindShaderVar<Colori>(uint32 shader, uint32 loc, const Colori& obj)
 	{
 		Color c = obj;
-		glProgramUniform4fv(shader, loc, 1, &c.x);
+		glUniform4fv(loc, 1, &c.x);
 	}
 	template<> void Material_Impl::BindShaderVar<Vector4i>(uint32 shader, uint32 loc, const Vector4i& obj)
 	{
-		glProgramUniform4iv(shader, loc, 1, &obj.x);
+		glUniform4iv(loc, 1, &obj.x);
 	}
 	template<> void Material_Impl::BindShaderVar<Vector3i>(uint32 shader, uint32 loc, const Vector3i& obj)
 	{
-		glProgramUniform3iv(shader, loc, 1, &obj.x);
+		glUniform3iv(loc, 1, &obj.x);
 	}
 	template<> void Material_Impl::BindShaderVar<Vector2i>(uint32 shader, uint32 loc, const Vector2i& obj)
 	{
-		glProgramUniform2iv(shader, loc, 1, &obj.x);
+		glUniform2iv(loc, 1, &obj.x);
 	}
 	template<> void Material_Impl::BindShaderVar<int32>(uint32 shader, uint32 loc, const int32& obj)
 	{
-		glProgramUniform1iv(shader, loc, 1, &obj);
+		glUniform1iv(loc, 1, &obj);
 	}
 	template<> void Material_Impl::BindShaderVar<Transform>(uint32 shader, uint32 loc, const Transform& obj)
 	{
-		glProgramUniformMatrix4fv(shader, loc, 1, GL_FALSE, obj.mat);
+		glUniformMatrix4fv(loc, 1, GL_FALSE, obj.mat);
 	}
 
 	Material MaterialRes::Create(OpenGL* gl)

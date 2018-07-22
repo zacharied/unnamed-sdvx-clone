@@ -567,15 +567,7 @@ Material Application::LoadMaterial(const String& name)
 {
 	String pathV = String("skins/") + m_skin + String("/shaders/") + name + ".vs";
 	String pathF = String("skins/") + m_skin + String("/shaders/") + name + ".fs";
-	String pathG = String("skins/") + m_skin + String("/shaders/") + name + ".gs";
 	Material ret = MaterialRes::Create(g_gl, pathV, pathF);
-	// Additionally load geometry shader
-	if(Path::FileExists(pathG))
-	{
-		Shader gshader = ShaderRes::Create(g_gl, ShaderType::Geometry, pathG);
-		assert(gshader);
-		ret->AssignShader(ShaderType::Geometry, gshader);
-	}
 	assert(ret);
 	return ret;
 }

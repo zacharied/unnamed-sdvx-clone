@@ -29,12 +29,7 @@ bool GUIRenderer::Init(class OpenGL* gl, class Graphics::Window* window, String 
 		String basePath = String("skins/") + skin + String("/shaders/");
 		String vs = Path::Normalize(basePath + name + ".vs");
 		String fs = Path::Normalize(basePath + name + ".fs");
-		String gs = Path::Normalize(basePath + name + ".gs");
 		Material ret = MaterialRes::Create(gl, vs, fs);
-		if(ret && Path::FileExists(gs))
-		{
-			ret->AssignShader(ShaderType::Geometry, Graphics::ShaderRes::Create(m_gl, ShaderType::Geometry, gs));
-		}
 		return ret;
 	};
 
@@ -356,7 +351,7 @@ void GUIRenderer::RenderButton(const Rect& rect, Texture texture, Margini border
 	params.SetParameter("size", rect.size);
 	params.SetParameter("texSize", size);
 
-	m_renderQueue->DrawScissored(m_scissorRect, transform, pointMesh, buttonMaterial, params);
+	m_renderQueue->DrawScissored(m_scissorRect, transform, guiQuad, buttonMaterial, params);
 }
 
 const Vector2i& GUIRenderer::GetMousePos() const

@@ -1,8 +1,6 @@
-#version 330
-#extension GL_ARB_separate_shader_objects : enable
+precision mediump float;
 
-layout(location=1) in vec2 fsTex;
-layout(location=0) out vec4 target;
+varying vec2 fsTex;
 
 uniform sampler2D frame;
 uniform sampler2D jacket;
@@ -11,11 +9,11 @@ uniform float selected;
 
 void main()
 {
-	vec4 jacket = texture(jacket, fsTex);
-	vec4 frame = texture(frame, fsTex);
+	vec4 jacket = texture2D(jacket, fsTex);
+	vec4 frame = texture2D(frame, fsTex);
 	float a = max(max(frame.x, frame.y), frame.z);
-	float pulse = cos(time*2) * 0.25 + 0.25;
+	float pulse = cos(time*2.0) * 0.25 + 0.25;
 	a = a * 0.5 + pulse * selected;
-	target = jacket * (0.3f + 0.7f * selected) * (1-a) + frame * a;
-	target.a = frame.a;
+	gl_FragColor = jacket * (0.3 + 0.7 * selected) * (1.0 - a) + frame * a;
+	gl_FragColor.a = frame.a;
 }
