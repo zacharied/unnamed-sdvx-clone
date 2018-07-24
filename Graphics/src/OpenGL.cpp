@@ -86,10 +86,10 @@ namespace Graphics
         }
 
 		// macOS doesnt need glew
-		#ifndef __APPLE__
+		#ifdef _WIN32
 		// To allow usage of experimental features
-		//glewExperimental = true;
-		//glewInit();
+		glewExperimental = true;
+		glewInit();
 		#endif
 
 		//#define LIST_OGL_EXTENSIONS
