@@ -9,14 +9,14 @@ namespace Graphics
 	{
 		GL_VERTEX_SHADER,
 		GL_FRAGMENT_SHADER,
-		GL_GEOMETRY_SHADER,
+		//GL_GEOMETRY_SHADER,
 	};
-	uint32 shaderStageMap[] =
-	{
-		GL_VERTEX_SHADER_BIT,
-		GL_FRAGMENT_SHADER_BIT,
-		GL_GEOMETRY_SHADER_BIT,
-	};
+	//uint32 shaderStageMap[] =
+	//{
+	//	GL_VERTEX_SHADER_BIT,
+	//	GL_FRAGMENT_SHADER_BIT,
+	//	GL_GEOMETRY_SHADER_BIT,
+	//};
 
 	class Shader_Impl : public ShaderRes
 	{
@@ -164,10 +164,10 @@ namespace Graphics
 	}
 	void ShaderRes::Unbind(class OpenGL* gl, ShaderType type)
 	{
-		if(gl->m_activeShaders[(size_t)type] != 0)
-		{
-			glUseProgramStages(gl->m_mainProgramPipeline, shaderStageMap[(size_t)type], 0);
-			gl->m_activeShaders[(size_t)type] = 0;
-		}
+		//if(gl->m_activeShaders[(size_t)type] != 0)
+		//{
+			//glUseProgramStages(gl->m_mainProgramPipeline, shaderStageMap[(size_t)type], 0);
+			//gl->m_activeShaders[(size_t)type] = 0;
+		//}
 	}
 }

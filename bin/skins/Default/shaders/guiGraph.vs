@@ -1,5 +1,5 @@
-attribute in vec2 inPos;
-attribute in vec2 inTex;
+attribute vec2 inPos;
+attribute vec2 inTex;
 
 varying vec2 fsTex;
 

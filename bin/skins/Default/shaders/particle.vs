@@ -1,6 +1,6 @@
-attribute in vec3 inPos;
-attribute in vec4 inColor;
-attribute in vec4 inParams;
+attribute vec3 inPos;
+attribute vec4 inColor;
+attribute vec4 inParams;
 
 varying vec4 fsColor;
 varying vec4 fsParams;

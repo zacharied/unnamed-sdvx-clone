@@ -22,7 +22,9 @@
 #include <OpenGL/gl3.h>
 #include <OpenGL/gl3ext.h>
 #elif __linux
-#include <Graphics/glew/GL/glew.h>
-#include <Graphics/glew/GL/glxew.h>
+#include "GLES3/gl3.h"
+#include "GLES3/gl3ext.h"
+#include "EGL/egl.h"
+#include "EGL/eglext.h"
 #endif
 

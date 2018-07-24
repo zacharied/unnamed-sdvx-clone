@@ -41,11 +41,6 @@ namespace Graphics
 			ResourceManagers::DestroyResourceManager<ResourceType::Framebuffer>();
 			ResourceManagers::DestroyResourceManager<ResourceType::ParticleSystem>();
 
-			if(glBindProgramPipeline)
-			{
-				glDeleteProgramPipelines(1, &m_mainProgramPipeline);
-			}
-
 			SDL_GL_DeleteContext(m_impl->context);
 			m_impl->context = nullptr;
 		}
@@ -84,13 +79,17 @@ namespace Graphics
             return false;
 		}
 
-		SDL_GL_MakeCurrent(sdlWnd, m_impl->context);
+		if (SDL_GL_MakeCurrent(sdlWnd, m_impl->context) < 0)
+        {
+            Logf("Failed to set OpenGL context to current: %s", Logger::Error, SDL_GetError());
+            return false;
+        }
 
 		// macOS doesnt need glew
 		#ifndef __APPLE__
 		// To allow usage of experimental features
-		glewExperimental = true;
-		glewInit();
+		//glewExperimental = true;
+		//glewInit();
 		#endif
 
 		//#define LIST_OGL_EXTENSIONS
@@ -124,16 +123,7 @@ namespace Graphics
 		glDisable(GL_DEPTH_TEST);
 		glEnable(GL_CULL_FACE);
 		glEnable(GL_TEXTURE_2D);
-		glEnable(GL_MULTISAMPLE);
 		glEnable(GL_BLEND);
-		int samples = 0;
-		glGetIntegerv(GL_MAX_SAMPLES, &samples);
-		samples -= 1;
-		if (antialiasing > 0)
-		{
-			m_boundFramebuffer = FramebufferRes::CreateMultisample(this, 1 << antialiasing);
-		}
-
 		return true;
 	}
 

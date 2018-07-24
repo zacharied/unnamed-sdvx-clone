@@ -455,7 +455,7 @@ void Application::m_Tick()
 void Application::m_Cleanup()
 {
 	ProfilerScope $("Application Cleanup");
-
+    Logf("Average FPS: %f", Logger::Info, GetRenderFPS());
 	for(auto it : g_tickables)
 	{
 		delete it;

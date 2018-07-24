@@ -46,13 +46,13 @@ namespace Graphics
 			uint32 type = -1;
 			if(format == TextureFormat::D32)
 			{
-				ifmt = GL_DEPTH_COMPONENT32;
+				ifmt = GL_DEPTH_COMPONENT16;
 				fmt = GL_DEPTH_COMPONENT;
 				type = GL_FLOAT;
 			}
 			else if(format == TextureFormat::RGBA8)
 			{
-				ifmt = GL_RGBA8;
+				ifmt = GL_RGBA;
 				fmt = GL_RGBA;
 				type = GL_UNSIGNED_BYTE;
 			}
@@ -70,20 +70,20 @@ namespace Graphics
 		}
 		virtual void SetFromFrameBuffer()
 		{
-			m_gl->BlitFramebuffer();
-			glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-			glReadBuffer(GL_BACK);
-			glBindTexture(GL_TEXTURE_2D, m_texture);
-			glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, m_size.x, m_size.y);
-			GLenum err;
-			bool errored = false;
-			while ((err = glGetError()) != GL_NO_ERROR)
-			{			
-				Logf("OpenGL Error: 0x%p", Logger::Severity::Error, err);
-				errored = true;
-			}
+			//m_gl->BlitFramebuffer();
+			//glBindFramebuffer(GL_READ_FRAMEBUFFER_NV, 0);
+			//glReadBuffer(GL_BACK);
+			//glBindTexture(GL_TEXTURE_2D, m_texture);
+			//glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, m_size.x, m_size.y);
+			//GLenum err;
+			//bool errored = false;
+			//while ((err = glGetError()) != GL_NO_ERROR)
+			//{			
+			//	Logf("OpenGL Error: 0x%p", Logger::Severity::Error, err);
+			//	errored = true;
+			//}
 			//assert(!errored);
-			glBindTexture(GL_TEXTURE_2D, 0);
+			//glBindTexture(GL_TEXTURE_2D, 0);
 		}
 
 
@@ -93,7 +93,7 @@ namespace Graphics
 			m_size = size;
 			m_data = pData;
 			glBindTexture(GL_TEXTURE_2D, m_texture);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_data);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_data);
 			glBindTexture(GL_TEXTURE_2D, 0);
 
 			UpdateFilterState();
@@ -114,10 +114,6 @@ namespace Graphics
 				else
 					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_filter ? GL_LINEAR : GL_NEAREST);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_filter ? GL_LINEAR : GL_NEAREST);
-			}
-			if(GL_TEXTURE_MAX_ANISOTROPY_EXT)
-			{
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, m_anisotropic);
 			}
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}

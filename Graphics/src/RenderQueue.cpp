@@ -163,7 +163,7 @@ namespace Graphics
 				}
 				else
 				{
-					glPointSize(pdc->size);
+					//glPointSize(pdc->size);
 				}
 				
 				DrawOrRedrawMesh(pdc->mesh);

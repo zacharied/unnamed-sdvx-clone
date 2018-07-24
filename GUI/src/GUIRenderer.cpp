@@ -16,7 +16,7 @@ GUIRenderer::~GUIRenderer()
 }
 bool GUIRenderer::Init(class OpenGL* gl, class Graphics::Window* window, String skin)
 {
-	assert(gl);
+	//assert(gl);
 	m_gl = gl;
 
 	m_time = 0.0f;

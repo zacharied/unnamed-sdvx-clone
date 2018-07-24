@@ -64,10 +64,7 @@ namespace Graphics
 				}
 				else
 				{
-					if(e.componentSize == 4)
-						type = GL_FLOAT;
-					else if(e.componentSize == 8)
-						type = GL_DOUBLE;
+					type = GL_FLOAT;
 				}
 				assert(type != -1);
 				glVertexAttribPointer((int)index, (int)e.components, type, GL_TRUE, (int)totalVertexSize, (void*)offset);
