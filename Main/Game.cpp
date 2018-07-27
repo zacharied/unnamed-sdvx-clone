@@ -562,7 +562,7 @@ public:
 		RenderState rs = m_camera.CreateRenderState(true);
 
 		// Draw BG first
-		m_background->Render(deltaTime);
+		// m_background->Render(deltaTime);
 
 		// Main render queue
 		RenderQueue renderQueue(g_gl, rs);
@@ -676,11 +676,11 @@ public:
 		}
 
 		// Render particle effects last
-		RenderParticles(rs, deltaTime);
+		// RenderParticles(rs, deltaTime);
 
-		glFlush();
+		//glFlush();
 		// Render foreground
-		m_foreground->Render(deltaTime);
+		//m_foreground->Render(deltaTime);
 
 		// Render debug hud if enabled
 		if(m_renderDebugHUD)
