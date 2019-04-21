@@ -39,7 +39,7 @@ void ButtonHitEffect::Draw(class RenderQueue& rq)
 
 	Vector2 hitEffectSize = Vector2(w, 0.0f);
 	hitEffectSize.y = track->scoreHitTexture->CalculateHeight(hitEffectSize.x) * yMult;
-	Color c = color.WithAlpha(GetRate());
+	Color c{color, GetRate()};
 	c.w *= yMult / 2.f;
 	track->DrawSprite(rq, Vector3(x, hitEffectSize.y * 0.5f, 0.0f), hitEffectSize, track->scoreHitTexture, c);
 }
@@ -88,7 +88,7 @@ void ButtonHitRatingEffect::Draw(class RenderQueue& rq)
 		hitEffectSize.y = hitTexture->CalculateHeight(hitEffectSize.x);
 
 		// Fade out
-		Color c = Color::White.WithAlpha(GetRate());
+		Color c{Color::White, GetRate()};
 		// Intensity scale
 		Utility::Reinterpret<Vector3>(c) *= iScale;
 

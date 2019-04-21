@@ -251,9 +251,7 @@ namespace Graphics
 			}
 
 			if(render)
-			{
-				verts.Add({ p.pos, p.startColor.WithAlpha(p.fade), Vector4(p.startSize * p.scale, p.rotation, 0, 0) });
-			}
+				verts.Add({ p.pos, Color{p.startColor, p.fade}, Vector4(p.startSize * p.scale, p.rotation, 0, 0) });
 		}
 
 		if(m_deactivated)

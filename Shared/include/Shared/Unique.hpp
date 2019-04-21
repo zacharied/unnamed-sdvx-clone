@@ -1,12 +1,10 @@
 #pragma once
 
-/*
-	Inherit from this to disallow copying
-*/
+// Inherit from this to disallow copying
 class Unique
 {
-protected:
+public:
+	Unique() = default;
 	Unique(const Unique& rhs) = delete;
 	Unique& operator=(const Unique& rhs) = delete;
-	Unique() = default;
 };

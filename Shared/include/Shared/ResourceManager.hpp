@@ -28,12 +28,9 @@ class ResourceManager : public IResourceManager, Unique
 	Vector<Ref<T>> m_objects;
 	Mutex m_lock;
 public:
-	ResourceManager()
-	{
-	}
-	~ResourceManager()
-	{
-	}
+	ResourceManager() = default;
+	~ResourceManager() override = default;
+
 	// Creates a new reference counted object to this object and returns it
 	// when the object is no longer referenced the resource manager will collect it when the next garbage collection triggers
 	const Ref<T> Register(T* pObject)
@@ -44,7 +41,7 @@ public:
 		m_lock.unlock();
 		return ret;
 	}
-	virtual void GarbageCollect() override
+	void GarbageCollect() override
 	{
 		size_t numCleanedUp = 0;
 		m_lock.lock();
@@ -64,7 +61,7 @@ public:
 			//Logf("Cleaned up %d resource(s) of %s", Logger::Info, numCleanedUp, Utility::TypeInfo<T>::name);
 		}
 	}
-	virtual void ReleaseAll()
+	void ReleaseAll() override
 	{
 		m_lock.lock();
 		size_t numCleanedUp = m_objects.size();

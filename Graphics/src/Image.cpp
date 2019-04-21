@@ -14,24 +14,19 @@ namespace Graphics
 {
 	class Image_Impl : public ImageRes
 	{
-		Vector2i m_size;
-		Colori* m_pData = nullptr;
-		size_t m_nDataLength;
 	public:
-		Image_Impl()
-		{
-
-		}
-		~Image_Impl()
+		Image_Impl() = default;
+		~Image_Impl() override
 		{
 			Clear();
 		}
+
 		void Clear()
 		{
-			if(m_pData)
-				delete[] m_pData;
+			delete[] m_pData;
 			m_pData = nullptr;
 		}
+
 		void Allocate()
 		{
 			m_nDataLength = m_size.x * m_size.y;
@@ -40,19 +35,20 @@ namespace Graphics
 			m_pData = new Colori[m_nDataLength];
 		}
 
-		void SetSize(Vector2i size)
+		void SetSize(Vector2i size) override
 		{
 			m_size = size;
 			Clear();
 			Allocate();
 		}
-		void ReSize(Vector2i size)
+
+		void ReSize(Vector2i size) override
 		{
 			size_t new_DataLength = size.x * size.y;
 			if (new_DataLength == 0){
 				return;
 			}
-			Colori* new_pData = new Colori[new_DataLength];
+			auto* new_pData = new Colori[new_DataLength];
 
 			for (int32 ix = 0; ix < size.x; ++ix){
 				for (int32 iy = 0; iy < size.y; ++iy){
@@ -113,15 +109,16 @@ namespace Graphics
 			glDeleteTextures(1, &texture);
 			return true;
 		}
-		void SavePNG(const String& file)
+
+		void SavePNG(const String& file) override
 		{
 			///TODO: Use shared/File.hpp instead?
 			File pngfile;
 			pngfile.OpenWrite(Path::Normalize(file));
 
-			png_structp png_ptr = NULL;
-			png_infop info_ptr = NULL;
-			png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+			png_structp png_ptr = nullptr;
+			png_infop info_ptr = nullptr;
+			png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
 			info_ptr = png_create_info_struct(png_ptr);
 			if (setjmp(png_jmpbuf(png_ptr)))
 			{
@@ -134,7 +131,7 @@ namespace Graphics
 				8, PNG_COLOR_TYPE_RGBA, PNG_INTERLACE_NONE,
 				PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
 
-			png_bytep* row_pointers = (png_bytep*)malloc(sizeof(png_bytep) * m_size.y);
+			auto* row_pointers = (png_bytep*)malloc(sizeof(png_bytep) * m_size.y);
 			for (size_t i = 0; i < m_size.y; ++i) {
 				row_pointers[m_size.y - i - 1] = (png_bytep)(m_pData + i * m_size.x);
 			}
@@ -145,38 +142,46 @@ namespace Graphics
 			pngfile.Close();
 			free(row_pointers);
 		}
-		Vector2i GetSize() const
+
+		Vector2i GetSize() const override
 		{
 			return m_size;
 		}
-		Colori* GetBits()
+
+		Colori* GetBits() override
 		{
 			return m_pData;
 		}
-		const Colori* GetBits() const
+
+		const Colori* GetBits() const override
 		{
 			return m_pData;
 		}
+
 	private:
+		Vector2i m_size;
+		Colori* m_pData = nullptr;
+		size_t m_nDataLength{};
+
 		static void pngfile_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
 		{
 			File* pngFile = (File*)png_get_io_ptr(png_ptr);
 			pngFile->Write(data, length);
 		}
 		static void pngfile_flush(png_structp png_ptr)
-		{
-		}
+		{}
 	};
 
 	Image ImageRes::Create(Vector2i size)
 	{
-		Image_Impl* pImpl = new Image_Impl();
+		auto* pImpl = new Image_Impl();
 		pImpl->SetSize(size);
 		return GetResourceManager<ResourceType::Image>().Register(pImpl);
 	}
+
 	Image ImageRes::Create(const String& assetPath)
 	{
-		Image_Impl* pImpl = new Image_Impl();
+		auto* pImpl = new Image_Impl();
 		if(ImageLoader::Load(pImpl, assetPath))
 		{
 			return GetResourceManager<ResourceType::Image>().Register(pImpl);
@@ -188,9 +193,10 @@ namespace Graphics
 		}
 		return Image();
 	}
+
 	Image ImageRes::Screenshot(OpenGL* gl, Vector2i size, Vector2i pos)
 	{
-		Image_Impl* pImpl = new Image_Impl();
+		auto* pImpl = new Image_Impl();
 		pImpl->SetSize(size);
 		if (!pImpl->Screenshot(gl, pos))
 		{

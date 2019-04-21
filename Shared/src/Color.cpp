@@ -12,21 +12,9 @@ Color::Color(const VectorMath::VectorBase<uint8, 4>& icolor)
     );
 }
 
-Color::Color(float r, float g, float b) : Color(r,g,b,1.0f)
-{
-}
-
-Color::Color(float all) : Color(all, all, all, 1.0f)
-{
-}
 Colori Color::ToRGBA8() const
 {
-	return Colori(*this * 255.0f);
-}
-
-Color Color::WithAlpha(float a) const
-{
-	return Color(x, y, z, a);
+	return Colori{*this * 255.0f};
 }
 
 Color Color::FromHSV(float hue, float saturation, float value)
@@ -71,10 +59,11 @@ const Color Color::Yellow = Color(1, 1, 0, 1);
 const Color Color::Magenta = Color(1, 0, 1, 1);
 const Color Color::Cyan = Color(0, 1, 1, 1);
 
-Colori::Colori(uint8 r, uint8 g, uint8 b) : Colori(r,g,b,255)
-{
+Color::Color(float r, float g, float b, float a) : VectorBase(r, g, b, a)
+{}
 
-}
+Color::Color(const Color& other, float a) : Color(other.x, other.y, other.z, a)
+{}
 
 // Converted integer constants
 const Colori Colori::Cyan = Color::Cyan;
@@ -85,3 +74,6 @@ const Colori Colori::Green = Color::Green;
 const Colori Colori::Red = Color::Red;
 const Colori Colori::Black = Color::Black;
 const Colori Colori::White = Color::White;
+
+Colori::Colori(uint8 r, uint8 g, uint8 b, uint8 a) : VectorBase(r, g, b, a)
+{}
