@@ -1,4 +1,5 @@
 #pragma once
+#include <Shared/Thread.hpp>
 #include <Graphics/GL.hpp>
 #include <Graphics/Window.hpp>
 
@@ -10,28 +11,16 @@ namespace Graphics
 	void GLDebugProc(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
 #endif
 
-	/*
-		OpenGL context wrapper with common functionality
-	*/
+	// OpenGL context wrapper with common functionality
 	class OpenGL
 	{
-		class ShaderRes* m_activeShaders[3] = { 0 };
-		uint32 m_mainProgramPipeline;
-		class OpenGL_Impl* m_impl;
-		Window* m_window;
-
-		friend class ShaderRes;
-		friend class TextureRes;
-		friend class MeshRes;
-		friend class Shader_Impl;
-		friend class RenderQueue;
-
 	public:
-		OpenGL();
+		OpenGL(const OpenGL&) = delete;
+		OpenGL& operator=(const OpenGL&) = delete;
 		~OpenGL();
-		void InitResourceManagers();
-		bool Init(Window& window, uint32 antialiasing);
+		static OpenGL& instance();
 
+		bool Init(Window& window, uint32 antialiasing);
 		Recti GetViewport() const;
 		uint32 GetFramebufferHandle();
 		void SetViewport(Vector2i size);
@@ -41,5 +30,20 @@ namespace Graphics
 		bool IsOpenGLThread() const;
 
 		virtual void SwapBuffers();
+
+	private:
+		array<class ShaderRes*, 3> m_activeShaders = { nullptr };
+		uint32 m_mainProgramPipeline;
+		Window* m_window;
+		SDL_GLContext context;
+		std::thread::id threadId;
+
+		friend class ShaderRes;
+		friend class TextureRes;
+		friend class MeshRes;
+		friend class Shader_Impl;
+		friend class RenderQueue;
+
+		OpenGL() = default;
 	};
 }
