@@ -21,9 +21,9 @@
 // for int8_t,int16_t,etc.
 #include <cinttypes>
 // for assert()
-#include <assert.h>
+#include <cassert>
 // for size_t
-#include <stdlib.h>
+#include <cstdlib>
 // for memcpy()
 #include <cstring>
 
@@ -36,3 +36,17 @@ typedef int32_t int32;
 typedef uint32_t uint32;
 typedef int64_t int64;
 typedef uint64_t uint64;
+
+// memory
+#include <memory>
+using std::unique_ptr;
+using std::make_unique;
+using std::shared_ptr;
+using std::make_shared;
+
+// containers
+#include <array>
+using std::array;
+#include <tuple>
+using std::pair;
+using std::tuple;
