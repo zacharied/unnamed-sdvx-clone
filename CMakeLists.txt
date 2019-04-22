@@ -51,13 +51,13 @@ macro(precompiled_header_exclude exclude)
 	endif(MSVC)
 endmacro(precompiled_header_exclude)
 
-# Function to enable c++11 compilation on linux
-macro(enable_cpp14)
+# Function to enable c++17 compilation on linux
+macro(enable_cpp17)
 	if(UNIX)
-		# C++11 support enabled for linux compilers
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+		# C++17 support enabled for linux compilers
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 	endif(UNIX)
-endmacro(enable_cpp14)
+endmacro(enable_cpp17)
 
 # Set output binary postfixes so that they will be named <project>_<configuration>.exe/dll
 macro(set_output_postfixes projectName)
