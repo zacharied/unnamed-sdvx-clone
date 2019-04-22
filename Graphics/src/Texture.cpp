@@ -1,8 +1,6 @@
 #include "stdafx.h"
-#include "OpenGL.hpp"
 #include "Texture.hpp"
 #include "Image.hpp"
-#include <Graphics/ResourceManagers.hpp>
 
 namespace Graphics
 {

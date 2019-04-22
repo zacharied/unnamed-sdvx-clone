@@ -1,6 +1,4 @@
 #pragma once
-#include <Graphics/ResourceTypes.hpp>
-
 namespace Graphics
 {
 	enum class TextureWrap
