@@ -25,7 +25,7 @@ namespace Graphics
 		return make_pair(std::move(tex), res);
 	}
 
-	auto Texture::Create(const class ImageRes& image) -> pair<unique_ptr<Texture>, bool>
+	auto Texture::Create(const IImage& image) -> pair<unique_ptr<Texture>, bool>
 	{
 		auto tex = make_unique<Texture>();
 		auto res = tex->Init();
