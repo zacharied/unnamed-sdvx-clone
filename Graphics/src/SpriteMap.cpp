@@ -13,14 +13,19 @@ namespace Graphics
 
 	SpriteMap::SpriteMap()
 	{
-		auto[img, res] = Image::Create(Vector2i{});
-		assert(res); // TODO: factory?
-		m_image = std::move(img);
+		auto img = Image::Create(Vector2i{});
+		assert(img); // TODO: factory?
+		m_image = std::move(*img);
 	}
 
 	Graphics::SpriteMap::~SpriteMap()
 	{
 		Clear();
+	}
+
+	auto SpriteMap::Create() -> optional<unique_ptr<SpriteMap>>
+	{
+		return make_unique<SpriteMap>();
 	}
 
 	uint32 SpriteMap::AddSegment(const IImage& image)
@@ -62,10 +67,10 @@ namespace Graphics
 
 	unique_ptr<ITexture> SpriteMap::GenerateTexture()
 	{
-		auto[tex, res] = Texture::Create(*m_image);
-		assert(res); // TODO: factory
-		tex->SetWrap(TextureWrap::Clamp, TextureWrap::Clamp);
-		return std::move(tex);
+		auto tex = Texture::Create(*m_image);
+		assert(tex); // TODO: factory
+		(*tex)->SetWrap(TextureWrap::Clamp, TextureWrap::Clamp);
+		return std::move(*tex);
 	}
 
 	Recti SpriteMap::GetCoords(uint32 nIndex)
@@ -121,12 +126,12 @@ namespace Graphics
 					if (m_image->GetSize().x != targetSize)
 					{
 						// Resize image
-						auto [newImage, res] = Image::Create(Vector2i{targetSize});
-						assert(res); // TODO: factory
+						auto newImage = Image::Create(Vector2i{targetSize});
+						assert(newImage); // TODO: factory
 						// Copy old image into new image
 						if (m_image->GetSize().x > 0)
-							CopySubImage(*newImage, *m_image, Vector2i());
-						m_image = std::move(newImage);
+							CopySubImage(**newImage, *m_image, Vector2i());
+						m_image = std::move(*newImage);
 					}
 				}
 			}

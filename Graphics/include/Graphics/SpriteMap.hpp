@@ -20,6 +20,7 @@ namespace Graphics
 	{
 	public:
 		~SpriteMap() override;
+		static auto Create() -> optional<unique_ptr<SpriteMap>>;
 
 		uint32 AddSegment(const IImage& image) override;
 		void Clear() override;

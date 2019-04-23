@@ -9,9 +9,9 @@ namespace Graphics
 	{
 	public:
 		~Texture() override = default;
-		static auto Create() -> pair<unique_ptr<Texture>, bool>;
-		static auto Create(const IImage& image) -> pair<unique_ptr<Texture>, bool>;
-		static auto Create(const Vector2i& resolution) -> pair<unique_ptr<Texture>, bool>;
+		static auto Create() -> optional<unique_ptr<Texture>>;
+		static auto Create(const IImage& image) -> optional<unique_ptr<Texture>>;
+		static auto Create(const Vector2i& resolution) -> optional<unique_ptr<Texture>>;
 
 		void Init(Vector2i size, TextureFormat format) override;
 		void SetData(Vector2i size, const void* pData) override;

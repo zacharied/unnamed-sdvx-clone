@@ -1,7 +1,5 @@
 #include "stdafx.h"
 #include "Image.hpp"
-#include <Graphics/ResourceManagers.hpp>
-#include "ImageLoader.hpp"
 #include "OpenGL.hpp"
 
 #ifdef __APPLE__
@@ -17,26 +15,28 @@ namespace Graphics
 		Clear();
 	}
 
-	auto Image::Create(const String& assetPath) -> pair<unique_ptr<Image>, bool>
+	auto Image::Create(const String& assetPath) -> optional<unique_ptr<Image>>
 	{
 		auto img = make_unique<Image>();
-		auto res = img->Load(assetPath);
-		return make_pair(std::move(img), res);
+		if (!img->Load(assetPath))
+			return {};
+		return std::move(img);
 	}
 
-	auto Image::Create(Vector2i size) -> pair<unique_ptr<Image>, bool>
+	auto Image::Create(Vector2i size) -> optional<unique_ptr<Image>>
 	{
 		auto img = make_unique<Image>();
 		img->SetSize(size);
-		return make_pair(std::move(img), true);
+		return std::move(img);
 	}
 
-	auto Image::CraeteScreenshot(Vector2i size, Vector2i pos) -> pair<unique_ptr<Image>, bool>
+	auto Image::CraeteScreenshot(Vector2i size, Vector2i pos) -> optional<unique_ptr<Image>>
 	{
 		auto img = make_unique<Image>();
 		img->SetSize(size);
-		auto res = img->Screenshot(pos);
-		return make_pair(std::move(img), res);
+		if(img->Screenshot(pos))
+			return {};
+		return std::move(img);
 	}
 
 	bool Image::Screenshot(Vector2i pos)

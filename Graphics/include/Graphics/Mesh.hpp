@@ -7,7 +7,7 @@ namespace Graphics
 	{
 	public:
 		~Mesh() override;
-		static auto Create() -> pair<unique_ptr<Mesh>, bool>;
+		static auto Create() -> optional<unique_ptr<Mesh>>;
 
 		// Sets how the point data is interpreted and drawn
 		// must be set before drawing

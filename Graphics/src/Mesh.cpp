@@ -1,16 +1,16 @@
 #include "stdafx.h"
 #include "Mesh.hpp"
-#include <Graphics/ResourceManagers.hpp>
 
 namespace Graphics
 {
 	uint32 primitiveTypeMap[] = {GL_TRIANGLES, GL_TRIANGLE_STRIP, GL_TRIANGLE_FAN, GL_LINES, GL_LINE_STRIP, GL_POINTS,};
 
-	auto Mesh::Create() -> pair<unique_ptr<Mesh>, bool>
+	auto Mesh::Create() -> optional<unique_ptr<Mesh>>
 	{
 		auto mesh = make_unique<Mesh>();
-		auto res = mesh->Init();
-		return make_pair(std::move(mesh), res);
+		if(!mesh->Init())
+			return {};
+		return std::move(mesh);
 	}
 
 	Mesh::~Mesh()

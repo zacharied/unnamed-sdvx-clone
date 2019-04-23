@@ -18,33 +18,33 @@ namespace Graphics
 		return aspect * height;
 	}
 
-	auto Texture::Create() -> pair<unique_ptr<Texture>, bool>
+	auto Texture::Create() -> optional<unique_ptr<Texture>>
 	{
 		auto tex = make_unique<Texture>();
-		auto res = tex->Init();
-		return make_pair(std::move(tex), res);
+		if(!tex->Init())
+			return {};
+		return std::move(tex);
 	}
 
-	auto Texture::Create(const IImage& image) -> pair<unique_ptr<Texture>, bool>
+	auto Texture::Create(const IImage& image) -> optional<unique_ptr<Texture>>
 	{
 		auto tex = make_unique<Texture>();
-		auto res = tex->Init();
-		if (res)
-			tex->SetData(image.GetSize(), image.GetBits());
-		return make_pair(std::move(tex), res);
+		if (!tex->Init())
+			return {};
+		tex->SetData(image.GetSize(), image.GetBits());
+		return std::move(tex);
 	}
 
-	auto Texture::Create(const Vector2i& resolution) -> pair<unique_ptr<Texture>, bool>
+	auto Texture::Create(const Vector2i& resolution) -> optional<unique_ptr<Texture>>
 	{
 		auto tex = make_unique<Texture>();
-		auto res = tex->Init();
-		if (res)
-		{
-			tex->Init(resolution, TextureFormat::RGBA8);
-			tex->SetWrap(TextureWrap::Clamp, TextureWrap::Clamp);
-			tex->SetFromFrameBuffer(Vector2i{0, 0});
-		}
-		return make_pair(std::move(tex), res);
+		if(!tex->Init())
+			return {};
+
+		tex->Init(resolution, TextureFormat::RGBA8);
+		tex->SetWrap(TextureWrap::Clamp, TextureWrap::Clamp);
+		tex->SetFromFrameBuffer(Vector2i{0, 0});
+		return std::move(tex);
 	}
 
 	bool Texture::Init()

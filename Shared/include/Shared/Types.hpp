@@ -47,6 +47,10 @@ using std::make_shared;
 // containers
 #include <array>
 using std::array;
+
 #include <tuple>
 using std::pair;
 using std::tuple;
+
+#include <optional>
+using std::optional;
