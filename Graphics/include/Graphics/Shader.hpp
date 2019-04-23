@@ -1,43 +1,37 @@
 #pragma once
-#include <Graphics/ResourceTypes.hpp>
+#include "IShader.hpp"
 
 namespace Graphics
 {
-	/* Enum of supported shader types */
-	enum class ShaderType
+	class Shader : public IShader
 	{
-		Vertex,
-		Fragment,
-		Geometry
-	};
+	public:
+		~Shader() override;
+		static auto Create(ShaderType type, const String& assetPath) -> optional<unique_ptr<Shader>>;
 
-	/*
-		A single unlinked OpenGL shader
-	*/
-	class ShaderRes
-	{
-	public:
-		virtual ~ShaderRes() = default;
-		static Ref<ShaderRes> Create(class OpenGL* gl, ShaderType type, const String& assetPath);
-		static void Unbind(class OpenGL* gl, ShaderType type);
-		friend class OpenGL;
-	public:
 		// Tries to hot-reload the shader program, only works if _DEBUG is defined
 		// returns true if the program was changed and thus the handle value also changed
-		virtual bool UpdateHotReload() = 0;
-		virtual void Bind() = 0;
-		virtual bool IsBound() const = 0;
-		virtual uint32 GetLocation(const String& name) const = 0;
-		uint32 operator[](const char* name) const
-		{
-			return GetLocation(name);
-		}
-		virtual uint32 Handle() = 0;
+		bool UpdateHotReload() override;
+		ShaderType GetType() const override;
+		bool IsBound() const override;
+		uint32 GetLocation(const String& name) const override;
+		uint32 Handle() override;
+		String GetOriginalName() const override;
 
-		virtual String GetOriginalName() const = 0;
+	private:
+		ShaderType m_type;
+		uint32 m_prog;
+
+		String m_sourcePath;
+
+#ifdef _WIN32 // Hot Reload detection on windows
+		HANDLE m_changeNotification = INVALID_HANDLE_VALUE;
+		uint64 m_lwt = -1;
+#endif
+
+		Shader() = default;
+		bool Init(ShaderType type, const String& name);
+		bool LoadProgram(uint32& programOut);
+		void SetupChangeHandler(); // windows only
 	};
-
-	typedef Ref<ShaderRes> Shader;
-
-	DEFINE_RESOURCE_TYPE(Shader, ShaderRes);
 }

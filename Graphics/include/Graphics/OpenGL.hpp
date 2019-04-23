@@ -2,6 +2,7 @@
 #include <Shared/Thread.hpp>
 #include <Graphics/GL.hpp>
 #include <Graphics/Window.hpp>
+#include "IShader.hpp"
 
 namespace Graphics
 {
@@ -26,19 +27,23 @@ namespace Graphics
 		void SetViewport(Vector2i size);
 		void SetViewport(Recti vp);
 
+		void Bind(IShader* shader);
+		void Unbind(ShaderType type);
+		bool IsBound(IShader* shader);
+
 		// Check if the calling thread is the thread that runs this OpenGL context
 		bool IsOpenGLThread() const;
 
 		virtual void SwapBuffers();
 
 	private:
-		array<class ShaderRes*, 3> m_activeShaders = { nullptr };
+		array<IShader*, 3> m_activeShaders = { nullptr };
 		uint32 m_mainProgramPipeline;
 		Window* m_window;
 		SDL_GLContext context;
 		std::thread::id threadId;
 
-		friend class ShaderRes;
+		friend class IShader;
 		friend class TextureRes;
 		friend class MeshRes;
 		friend class Shader_Impl;

@@ -134,6 +134,29 @@ namespace Graphics
 		return instance;
 	}
 
+	void OpenGL::Unbind(ShaderType type)
+	{
+		if(m_activeShaders[(size_t)type] != nullptr)
+		{
+			glUseProgramStages(m_mainProgramPipeline, shaderStageMap[(size_t)type], 0);
+			m_activeShaders[(size_t)type] = nullptr;
+		}
+	}
+
+	void OpenGL::Bind(IShader* shader)
+	{
+		if(m_activeShaders[(size_t)shader->GetType()] != shader)
+		{
+			glUseProgramStages(m_mainProgramPipeline, shaderStageMap[(size_t)shader->GetType()], shader->Handle());
+			m_activeShaders[(size_t)shader->GetType()] = shader;
+		}
+	}
+
+	bool OpenGL::IsBound(IShader* shader)
+	{
+		return m_activeShaders[(size_t)shader->GetType()] == shader;
+	}
+
 #ifdef _WIN32
 	void APIENTRY GLDebugProc(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
 	#else
