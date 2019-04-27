@@ -5,7 +5,6 @@
 #include <SDL.h>
 #else
 #include <SDL2/SDL.h>
-#include "KeyMap.hpp"
 #include "IImage.hpp"
 
 #endif
@@ -116,7 +115,6 @@ namespace Graphics
 
 		// Window Input State
 		Map<SDL_Keycode, uint8> m_keyStates;
-		KeyMap m_keyMapping;
 		ModifierKeys m_modKeys = ModifierKeys::None;
 
 		// Text input / IME stuff

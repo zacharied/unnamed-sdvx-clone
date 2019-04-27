@@ -12,5 +12,4 @@
 #include <Graphics/RenderQueue.hpp>
 #include <Graphics/RenderState.hpp>
 #include <Graphics/ParticleSystem.hpp>
-#include <Graphics/MeshGenerators.hpp>
 #include <Graphics/Font.hpp>

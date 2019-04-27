@@ -85,7 +85,7 @@ namespace Graphics
 		ci.leftOffset = (*pFace)->glyph->bitmap_left;
 		ci.advance = (float) (*pFace)->glyph->advance.x / 64.0f;
 
-		auto img = Image::Create(Vector2i{(*pFace)->glyph->bitmap.width, (*pFace)->glyph->bitmap.rows});
+		auto img = Image::Create(Vector2i{static_cast<int>((*pFace)->glyph->bitmap.width), static_cast<int>((*pFace)->glyph->bitmap.rows)});
 		assert(img); // TODO: (factory);
 		Colori* pDst = (*img)->GetBits();
 		uint8* pSrc = (*pFace)->glyph->bitmap.buffer;
@@ -133,7 +133,9 @@ namespace Graphics
 	void TextCache::AddText(const WString& key, unique_ptr<Text> obj)
 	{
 		Update();
-		Add(key, {std::move(obj), timer.SecondsAsFloat()});
+		auto it = find(key);
+		if(it == end())
+			insert(std::make_pair(key, CachedText{std::move(obj), timer.SecondsAsFloat()}));
 	}
 
 	FontLibrary& FontLibrary::instance()

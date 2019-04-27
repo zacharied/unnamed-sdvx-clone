@@ -228,16 +228,6 @@ namespace Graphics
 		return SDL_GetWindowDisplayIndex(m_window);
 	}
 
-	bool Window::IsKeyPressed(SDL_Keycode key) const
-	{
-		return m_keyStates.at(key) > 0;
-	}
-
-	Graphics::ModifierKeys Window::GetModifierKeys() const
-	{
-		return m_modKeys;
-	}
-
 	bool Window::IsActive() const
 	{
 		return SDL_GetWindowFlags(m_window) & SDL_WindowFlags::SDL_WINDOW_INPUT_FOCUS;
