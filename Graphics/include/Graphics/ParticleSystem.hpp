@@ -1,5 +1,4 @@
 #pragma once
-#include <Graphics/ResourceTypes.hpp>
 #include <Graphics/ParticleEmitter.hpp>
 
 namespace Graphics
@@ -20,8 +19,4 @@ namespace Graphics
 		// Removes all active particle systems
 		virtual void Reset() = 0;
 	};
-
-	typedef Ref<ParticleSystemRes> ParticleSystem;
-
-	DEFINE_RESOURCE_TYPE(ParticleSystem, ParticleSystemRes);
 }
