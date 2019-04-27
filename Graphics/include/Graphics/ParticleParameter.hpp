@@ -19,11 +19,7 @@ namespace Graphics
 		// Used to process over lifetime events
 		virtual T Sample(float duration) = 0;
 		virtual T GetMax() = 0;
-		virtual IParticleParameter<T>* Duplicate() const = 0;
 	};
-
-	// Macro for implementing the Duplicate() function
-#define IMPLEMENT_DUPLICATE(__type, __self) IParticleParameter<__type>* Duplicate() const { return new __self(*this); }
 
 	/* A constant value at all times */
 	template<typename T>
@@ -39,7 +35,6 @@ namespace Graphics
 		{
 			return val;
 		}
-		IMPLEMENT_DUPLICATE(T, PPConstant);
 	private:
 		T val;
 	};
@@ -62,7 +57,6 @@ namespace Graphics
 		{
 			return Math::Max(max, min);
 		}
-		IMPLEMENT_DUPLICATE(T, PPRandomRange);
 	private:
 		T delta;
 		T min, max;
@@ -82,7 +76,6 @@ namespace Graphics
 		{
 			return Math::Max(max, min);
 		}
-		IMPLEMENT_DUPLICATE(T, PPRange);
 	private:
 		T delta;
 		T min, max;
@@ -113,7 +106,6 @@ namespace Graphics
 		{
 			return Math::Max(max, min);
 		}
-		IMPLEMENT_DUPLICATE(T, PPRangeFadeIn);
 	private:
 		float rangeOut;
 		float fadeIn;
@@ -136,7 +128,6 @@ namespace Graphics
 		{
 			return Vector3(radius);
 		}
-		IMPLEMENT_DUPLICATE(Vector3, PPSphere);
 	private:
 		float radius;
 	};
@@ -160,7 +151,6 @@ namespace Graphics
 		{
 			return size;
 		}
-		IMPLEMENT_DUPLICATE(Vector3, PPBox);
 	private:
 		Vector3 size;
 	};
@@ -209,12 +199,9 @@ namespace Graphics
 		{
 			return Vector3(0, 0, lengthMax);
 		}
-		IMPLEMENT_DUPLICATE(Vector3, PPCone);
 	private:
 		float lengthMin, lengthMax;
 		float angle;
 		Transform mat;
 	};
-
-#undef IMPLEMENT_DUPLICATE
 }

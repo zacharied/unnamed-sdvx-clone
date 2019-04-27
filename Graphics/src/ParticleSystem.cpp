@@ -3,7 +3,6 @@
 #include "ParticleSystem.hpp"
 #include "Mesh.hpp"
 #include "VertexFormat.hpp"
-#include <Graphics/ResourceManagers.hpp>
 
 namespace Graphics
 {
@@ -137,23 +136,24 @@ namespace Graphics
 
 	ParticleEmitter::ParticleEmitter(ParticleSystem_Impl* sys) : m_system(sys)
 	{
-		// Set parameter defaults
-#define PARTICLE_DEFAULT(__name, __value)\
-	Set##__name(__value);
-#include "ParticleParameters.hpp"
+		Set_Lifetime(new PPRandomRange<float>(0.6f, 0.8f));
+		Set_ScaleOverTime(new PPRange<float>(1.0f, 0.8f));
+		Set_FadeOverTime(new PPRange<float>(1, 0));
+		Set_StartColor(new PPConstant<Color>(Color::White));
+		Set_StartVelocity(new PPConstant<Vector3>(Vector3{0.0f}));
+		Set_SpawnVelocityScale(new PPRandomRange<float>(0.8f, 1.0f));
+		Set_StartSize(new PPRandomRange<float>(0.5, 1));
+		Set_StartRotation(new PPRandomRange<float>(0, Math::pi * 2));
+		Set_StartPosition(new PPSphere(0.2f));
+		Set_StartDrag(new PPConstant<float>(0));
+		Set_Gravity(new PPConstant<Vector3>({ 0, 0, 0 }));
+		Set_SpawnRate(new PPConstant<float>(20));
 	}
+
 	ParticleEmitter::~ParticleEmitter()
 	{
 		// Cleanup particle parameters
-#define PARTICLE_PARAMETER(__name, __type)\
-	if(m_param_##__name){\
-		delete m_param_##__name; m_param_##__name = nullptr; }
-#include "ParticleParameters.hpp"
-
-		if(m_particles)
-		{
-			delete[] m_particles;
-		}
+		delete[] m_particles;
 	}
 
 	void ParticleEmitter::m_ReallocatePool(uint32 newCapacity)
@@ -178,8 +178,7 @@ namespace Graphics
 			memcpy(m_particles, oldParticles, Math::Min(oldSize, m_poolSize) * sizeof(Particle));
 		}
 
-		if(oldParticles)
-			delete[] oldParticles;
+		delete[] oldParticles;
 	}
 	void ParticleEmitter::Render(const class RenderState& rs, float deltaTime)
 	{
