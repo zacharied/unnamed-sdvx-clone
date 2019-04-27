@@ -14,6 +14,8 @@ namespace Graphics
 	class IParticleParameter
 	{
 	public:
+		virtual ~IParticleParameter() = default;
+
 		// Used to initialize a starting attribute
 		virtual T Init(float systemTime) { return Sample(systemTime); }
 		// Used to process over lifetime events
@@ -26,12 +28,15 @@ namespace Graphics
 	class PPConstant : public IParticleParameter<T>
 	{
 	public:
-		PPConstant(const T& val) : val(val) {};
-		virtual T Sample(float in) override
+		explicit PPConstant(const T& val) : val(val)
+		{};
+
+		T Sample(float in) override
 		{
 			return val;
 		}
-		virtual T GetMax()
+
+		T GetMax() override
 		{
 			return val;
 		}
@@ -45,18 +50,21 @@ namespace Graphics
 	{
 	public:
 		PPRandomRange(const T& min, const T& max) : min(min), max(max) { delta = max - min; };
-		virtual T Init(float systemTime) override
+		T Init(float systemTime) override
 		{
 			return Sample(Random::Float());
 		}
-		virtual T Sample(float in) override
+
+		T Sample(float in) override
 		{
 			return (max - min) * in + min;
 		}
-		virtual T GetMax()
+
+		T GetMax() override
 		{
 			return Math::Max(max, min);
 		}
+
 	private:
 		T delta;
 		T min, max;
@@ -67,15 +75,21 @@ namespace Graphics
 	class PPRange : public IParticleParameter<T>
 	{
 	public:
-		PPRange(const T& min, const T& max) : min(min), max(max) { delta = max - min; };
-		virtual T Sample(float in) override
+		PPRange(const T& min, const T& max) : min(min), max(max)
+		{
+			delta = max - min;
+		};
+
+		T Sample(float in) override
 		{
 			return (max - min) * in + min;
 		}
-		virtual T GetMax()
+
+		T GetMax() override
 		{
 			return Math::Max(max, min);
 		}
+
 	private:
 		T delta;
 		T min, max;
@@ -91,21 +105,20 @@ namespace Graphics
 			delta = max - min;
 			rangeOut = 1.0f - fadeIn;
 		};
-		virtual T Sample(float in) override
+
+		T Sample(float in) override
 		{
 			if(in < fadeIn)
-			{
 				return min * (in / fadeIn);
-			}
 			else
-			{
 				return (in - fadeIn) / rangeOut * (max - min) + min;
-			}
 		}
-		virtual T GetMax()
+
+		T GetMax() override
 		{
 			return Math::Max(max, min);
 		}
+
 	private:
 		float rangeOut;
 		float fadeIn;
@@ -117,17 +130,19 @@ namespace Graphics
 	class PPSphere : public IParticleParameter<Vector3>
 	{
 	public:
-		PPSphere(float radius) : radius(radius)
-		{
-		}
-		virtual Vector3 Sample(float in) override
+		explicit PPSphere(float radius) : radius(radius)
+		{}
+
+		Vector3 Sample(float in) override
 		{
 			return Vector3(Random::FloatRange(-1.0f, 1.0f), Random::FloatRange(-1.0f, 1.0f), Random::FloatRange(-1.0f, 1.0f)) * radius;
 		}
-		virtual Vector3 GetMax()
+
+		Vector3 GetMax() override
 		{
 			return Vector3(radius);
 		}
+
 	private:
 		float radius;
 	};
@@ -136,10 +151,10 @@ namespace Graphics
 	class PPBox : public IParticleParameter<Vector3>
 	{
 	public:
-		PPBox(Vector3 size) : size(size)
-		{
-		}
-		virtual Vector3 Sample(float in) override
+		explicit PPBox(Vector3 size) : size(size)
+		{}
+
+		Vector3 Sample(float in) override
 		{
 			Vector3 offset = -size * 0.5f;
 			offset.x += Random::Float() * size.x;
@@ -147,10 +162,12 @@ namespace Graphics
 			offset.z += Random::Float() * size.z;
 			return offset;
 		}
-		virtual Vector3 GetMax()
+
+		Vector3 GetMax() override
 		{
 			return size;
 		}
+
 	private:
 		Vector3 size;
 	};
@@ -173,7 +190,8 @@ namespace Graphics
 			Vector3 bitangent = VectorMath::Cross(tangent, normal);
 			mat = Transform::FromAxes(bitangent, tangent, normal);
 		}
-		virtual Vector3 Sample(float in) override
+
+		Vector3 Sample(float in) override
 		{
 			float length = Random::FloatRange(lengthMin, lengthMax);
 
@@ -195,10 +213,12 @@ namespace Graphics
 			v *= length;
 			return v;
 		}
-		virtual Vector3 GetMax()
+
+		Vector3 GetMax() override
 		{
 			return Vector3(0, 0, lengthMax);
 		}
+
 	private:
 		float lengthMin, lengthMax;
 		float angle;

@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "Image.hpp"
 #include "Texture.hpp"
-#include <Graphics/ResourceManagers.hpp>
 #include <set>
 #include <Graphics/SpriteMap.hpp>
 
@@ -25,7 +24,8 @@ namespace Graphics
 
 	auto SpriteMap::Create() -> optional<unique_ptr<SpriteMap>>
 	{
-		return make_unique<SpriteMap>();
+		struct EnableMaker : public SpriteMap { using SpriteMap::SpriteMap; };
+		return make_unique<EnableMaker>();
 	}
 
 	uint32 SpriteMap::AddSegment(const IImage& image)

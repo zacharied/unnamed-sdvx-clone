@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "Material.hpp"
 #include "OpenGL.hpp"
-#include <Graphics/ResourceManagers.hpp>
 #include "RenderQueue.hpp"
 
 namespace Graphics
@@ -42,14 +41,16 @@ namespace Graphics
 		glDeleteProgramPipelines(1, &m_pipeline);
 	}
 
-	void Material::AssignShader(ShaderType t, IShader shader)
+	void Material::AssignShader(unique_ptr<IShader> shader)
 	{
-		m_shaders[(size_t)t] = shader;
+		auto handle = shader->Handle();
+		auto shader_type = shader->GetType();
+		auto original_name = shader->GetOriginalName();
 
-		uint32 handle = shader->Handle();
+		m_shaders[(size_t)shader_type] = std::move(shader);
 
 #ifdef _DEBUG
-		Logf("Listing shader uniforms for %s", Logger::Info, shader->GetOriginalName());
+		Logf("Listing shader uniforms for %s", Logger::Info, original_name);
 #endif // _DEBUG
 
 		int32 numUniforms;
@@ -106,7 +107,7 @@ namespace Graphics
 					targetID = m_mappedParameters.Add(name, m_userID++);
 			}
 
-			BoundParameterInfo& param = m_boundParameters.FindOrAdd(targetID).Add(BoundParameterInfo(t, type, loc));
+			BoundParameterInfo& param = m_boundParameters.FindOrAdd(targetID).Add(BoundParameterInfo(shader_type, type, loc));
 
 #ifdef _DEBUG
 			Logf("Uniform [%d, loc=%d, %s] = %s", Logger::Info,
@@ -114,7 +115,7 @@ namespace Graphics
 #endif // _DEBUG
 		}
 
-		glUseProgramStages(m_pipeline, shaderStageMap[(size_t)t], shader->Handle());
+		glUseProgramStages(m_pipeline, shaderStageMap[(size_t)shader_type], handle);
 	}
 
 	// Bind render state and params and shaders to context
@@ -248,15 +249,20 @@ namespace Graphics
 
 	auto Material::Create() -> optional<unique_ptr<Material>>
 	{
-		auto mat = make_unique<Material>();
-		return std::move(mat);
+		struct EnableMaker : public Material { using Material::Material; };
+		return make_unique<EnableMaker>();
 	}
 
 	auto Material::Create(const String& vsPath, const String& fsPath) -> optional<unique_ptr<Material>>
 	{
-		auto mat = make_unique<Material>();
-		mat->AssignShader(ShaderType::Vertex, Shader::Create(ShaderType::Vertex, vsPath));
-		mat->AssignShader(ShaderType::Fragment, Shader::Create(ShaderType::Fragment, fsPath));
+		struct EnableMaker : public Material { using Material::Material; };
+		auto mat = make_unique<EnableMaker>();
+		auto vShader = Shader::Create(ShaderType::Vertex, vsPath);
+		assert(vShader); // TODO: (factory)
+		auto fShader = Shader::Create(ShaderType::Fragment, fsPath);
+		assert(fShader); // TODO: (factory)
+		mat->AssignShader(std::move(*vShader));
+		mat->AssignShader(std::move(*fShader));
 #if _DEBUG
 		impl->m_debugNames[(size_t)ShaderType::Vertex] = vsPath;
 		impl->m_debugNames[(size_t)ShaderType::Fragment] = fsPath;

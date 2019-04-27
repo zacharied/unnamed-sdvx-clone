@@ -1,6 +1,5 @@
 #pragma once
 #include <Graphics/IMaterial.hpp>
-#include <Graphics/ResourceTypes.hpp>
 #include <Graphics/Shader.hpp>
 #include <Graphics/RenderState.hpp>
 
@@ -49,7 +48,7 @@ namespace Graphics
 		bool opaque = true;
 		MaterialBlendMode blendMode = MaterialBlendMode::Normal;
 
-		void AssignShader(ShaderType t, IShader shader) override;
+		void AssignShader(unique_ptr<IShader> shader) override;
 		void Bind(const RenderState& rs, const MaterialParameterSet& params) override;
 
 		// Only binds parameters to the current shader
@@ -59,7 +58,7 @@ namespace Graphics
 		void BindToContext() override;
 
 	private:
-		array<IShader, 3> m_shaders;
+		array<unique_ptr<IShader>, 3> m_shaders;
 #if _DEBUG
 		String m_debugNames[3];
 #endif

@@ -50,7 +50,9 @@ using std::array;
 
 #include <tuple>
 using std::pair;
+using std::make_pair;
 using std::tuple;
+using std::make_tuple;
 
 #include <optional>
 using std::optional;

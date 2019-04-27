@@ -1,5 +1,6 @@
 #pragma once
 #include "Shared/Math.hpp"
+#include <Shared/Types.hpp>
 #include <type_traits>
 
 namespace VectorMath
@@ -14,7 +15,7 @@ namespace VectorMath
 	public:
 		T x, y, z, w;
 		VectorBase() : x(0), y(0), z(0), w(0) {};
-		explicit VectorBase(T c) : x(c), y(c), z(c), w(c) {};
+		VectorBase(T c) : x(c), y(c), z(c), w(c) {};
 		VectorBase(T x, T y, T z, T w) : x(x), y(y), z(z), w(w) {};
 		template<typename T1>
 		VectorBase(const VectorBase<T1, 4>& other)
@@ -119,7 +120,7 @@ namespace VectorMath
 	public:
 		T x, y, z;
 		VectorBase() : x(0), y(0), z(0) {};
-		explicit VectorBase(float c) : x(c), y(c), z(c) {};
+		VectorBase(float c) : x(c), y(c), z(c) {};
 		VectorBase(T x, T y, T z) : x(x), y(y), z(z) {};
 		template<typename T1>
 		VectorBase(const VectorBase<T1, 3>& other)
@@ -211,7 +212,7 @@ namespace VectorMath
 	public:
 		T x, y;
 		VectorBase() : x(0), y(0) {};
-		explicit VectorBase(T c) : x(c), y(c) {};
+		VectorBase(T c) : x(c), y(c) {};
 		VectorBase(T x, T y) : x(x), y(y) {};
 		template<typename T1>
 		VectorBase(const VectorBase<T1, 2>& other)
@@ -326,7 +327,7 @@ namespace VectorMath
 	template<typename T>
 	T VectorMath::VectorBase<T, 4>::Length() const
 	{
-		static_assert(std::is_floating_point<T>::value == true, "Length can only be called on floating point vectors");
+		static_assert(std::is_floating_point<T>::value != 0, "Length can only be called on floating point vectors");
 		return (T)std::sqrt(LengthSquared());
 	}
 	template<typename T>
@@ -337,7 +338,7 @@ namespace VectorMath
 	template<typename T>
 	T VectorMath::VectorBase<T, 3>::Length() const
 	{
-		static_assert(std::is_floating_point<T>::value == true, "Length can only be called on floating point vectors");
+		static_assert(std::is_floating_point<T>::value != 0, "Length can only be called on floating point vectors");
 		return (T)std::sqrt(LengthSquared());
 	}
 	template<typename T>
@@ -348,7 +349,7 @@ namespace VectorMath
 	template<typename T>
 	T VectorMath::VectorBase<T, 2>::Length() const
 	{
-		static_assert(std::is_floating_point<T>::value == true, "Length can only be called on floating point vectors");
+		static_assert(std::is_floating_point<T>::value != 0, "Length can only be called on floating point vectors");
 		return (T)std::sqrt(LengthSquared());
 	}
 	template<typename T>

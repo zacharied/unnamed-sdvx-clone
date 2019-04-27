@@ -7,7 +7,8 @@ namespace Graphics
 
 	auto Mesh::Create() -> optional<unique_ptr<Mesh>>
 	{
-		auto mesh = make_unique<Mesh>();
+		struct EnableMaker : public Mesh { using Mesh::Mesh; };
+		auto mesh = make_unique<EnableMaker>();
 		if(!mesh->Init())
 			return {};
 		return std::move(mesh);
@@ -94,5 +95,30 @@ namespace Graphics
 
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	}
+
+	unique_ptr<Mesh> Mesh::GenerateQuad(Vector2 pos, Vector2 size)
+	{
+		Vector<SimpleVertex> verts =
+				{
+						{ { 0.0f,  size.y, 0.0f }, { 0.0f, 0.0f } },
+						{ { size.x, 0.0f,  0.0f }, { 1.0f, 1.0f } },
+						{ { size.x, size.y, 0.0f }, { 1.0f, 0.0f } },
+
+						{ { 0.0f,  size.y, 0.0f }, { 0.0f, 0.0f } },
+						{ { 0.0f,  0.0f,  0.0f }, { 0.0f, 1.0f } },
+						{ { size.x, 0.0f,  0.0f }, { 1.0f, 1.0f } },
+				};
+
+		for(auto& v : verts)
+		{
+			v.pos += pos;
+		}
+
+		auto mesh = Mesh::Create();
+		assert(mesh); // TODO: factory
+		((IMesh*)(*mesh).get())->SetData(verts);
+		(*mesh)->SetPrimitiveType(PrimitiveType::TriangleList);
+		return std::move(*mesh);
 	}
 }

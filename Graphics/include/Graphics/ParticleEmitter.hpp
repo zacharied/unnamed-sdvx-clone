@@ -2,6 +2,7 @@
 
 #include <Graphics/Material.hpp>
 #include <Graphics/Texture.hpp>
+#include <Graphics/Particle.hpp>
 #include <Graphics/ParticleParameter.hpp>
 
 namespace Graphics
@@ -12,13 +13,15 @@ namespace Graphics
 	class ParticleEmitter
 	{
 	public:
+		// Constructed by particle system
+		ParticleEmitter();
 		~ParticleEmitter();
 
 		// Material used for the particle
-		Material material;
+		IMaterial* material;
 
 		// Texture to use for the particle
-		Texture texture;
+		ITexture* texture;
 
 		// Emitter location
 		Vector3 position;
@@ -117,12 +120,10 @@ namespace Graphics
 		// Stop spawning any particles
 		void Deactivate();
 
+		// render
+		void Render(const RenderState& rs, float deltaTime);
+
 	private:
-		// Constructed by particle system
-		ParticleEmitter(class ParticleSystem_Impl* sys);
-
-		void Render(const class RenderState& rs, float deltaTime);
-
 		void m_ReallocatePool(uint32 newCapacity);
 
 		float m_spawnCounter = 0;
@@ -132,13 +133,8 @@ namespace Graphics
 		bool m_finished = false;
 		uint32 m_emitterLoopIndex = 0;
 
-		friend class ParticleSystem_Impl;
-
 		friend class Particle;
-
-		ParticleSystem_Impl* m_system;
-
-		class Particle* m_particles = nullptr;
+		class Particle* m_particles;
 
 		uint32 m_poolSize = 0;
 
@@ -150,7 +146,7 @@ namespace Graphics
 		IParticleParameter<Vector3>* m_param_StartVelocity;
 		IParticleParameter<float>* m_param_StartSize;
 		IParticleParameter<float>* m_param_StartRotation;
-		IParticleParameter<float>* m_param_StartPosition;
+		IParticleParameter<Vector3>* m_param_StartPosition;
 		IParticleParameter<float>* m_param_StartDrag;
 		IParticleParameter<Vector3>* m_param_Gravity;
 		IParticleParameter<float>* m_param_SpawnVelocityScale;

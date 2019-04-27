@@ -2,6 +2,7 @@
 
 #include <Shared/Types.hpp>
 #include <Shared/String.hpp>
+#include <Graphics/GL.hpp>
 
 namespace Graphics
 {

@@ -1,4 +1,5 @@
 #pragma once
+#include <Graphics/IParticleSystem.hpp>
 #include <Graphics/ParticleEmitter.hpp>
 
 namespace Graphics
@@ -7,16 +8,20 @@ namespace Graphics
 		Particles system
 		contains emitters and handles the cleanup/lifetime of them.
 	*/
-	class ParticleSystemRes
+	class ParticleSystem : public IParticleSystem
 	{
 	public:
-		virtual ~ParticleSystemRes() = default;
-		static Ref<ParticleSystemRes> Create(class OpenGL* gl);
-	public:
+		~ParticleSystem() override = default;
+
+		static auto Create() -> optional<unique_ptr<ParticleSystem>>;
+
 		// Create a new emitter
-		virtual Ref<ParticleEmitter> AddEmitter() = 0;
-		virtual void Render(const class RenderState& rs, float deltaTime) = 0;
+		void AddEmitter(ParticleEmitter* emitter) override;
+		void Render(const RenderState& rs, float deltaTime) override;
 		// Removes all active particle systems
-		virtual void Reset() = 0;
+		void Reset() override;
+
+	private:
+		Vector<ParticleEmitter*> m_emitters;
 	};
 }

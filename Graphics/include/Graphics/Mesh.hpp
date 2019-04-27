@@ -9,6 +9,8 @@ namespace Graphics
 		~Mesh() override;
 		static auto Create() -> optional<unique_ptr<Mesh>>;
 
+		static unique_ptr<Mesh> GenerateQuad(Vector2 pos, Vector2 size);
+
 		// Sets how the point data is interpreted and drawn
 		// must be set before drawing
 		void SetPrimitiveType(PrimitiveType pt) override;

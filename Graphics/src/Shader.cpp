@@ -28,7 +28,8 @@ namespace Graphics
 
 	auto Shader::Create(ShaderType type, const String& assetPath) -> optional<unique_ptr<Shader>>
 	{
-		auto shader = make_unique<Shader>();
+		struct EnableMaker : public Shader { using Shader::Shader; };
+		auto shader = make_unique<EnableMaker>();
 		if (!shader->Init(type, assetPath))
 			return {};
 		return std::move(shader);

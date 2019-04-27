@@ -4,23 +4,10 @@
 
 namespace Graphics
 {
-	float ITexture::CalculateHeight(float width)
-	{
-		Vector2 size = GetSize();
-		float aspect = size.y / size.x;
-		return aspect * width;
-	}
-
-	float ITexture::CalculateWidth(float height)
-	{
-		Vector2 size = GetSize();
-		float aspect = size.x / size.y;
-		return aspect * height;
-	}
-
 	auto Texture::Create() -> optional<unique_ptr<Texture>>
 	{
-		auto tex = make_unique<Texture>();
+		struct EnableMaker : public Texture { using Texture::Texture; };
+		auto tex = make_unique<EnableMaker>();
 		if(!tex->Init())
 			return {};
 		return std::move(tex);
@@ -28,7 +15,8 @@ namespace Graphics
 
 	auto Texture::Create(const IImage& image) -> optional<unique_ptr<Texture>>
 	{
-		auto tex = make_unique<Texture>();
+		struct EnableMaker : public Texture { using Texture::Texture; };
+		auto tex = make_unique<EnableMaker>();
 		if (!tex->Init())
 			return {};
 		tex->SetData(image.GetSize(), image.GetBits());
@@ -37,7 +25,8 @@ namespace Graphics
 
 	auto Texture::Create(const Vector2i& resolution) -> optional<unique_ptr<Texture>>
 	{
-		auto tex = make_unique<Texture>();
+		struct EnableMaker : public Texture { using Texture::Texture; };
+		auto tex = make_unique<EnableMaker>();
 		if(!tex->Init())
 			return {};
 
@@ -133,6 +122,20 @@ namespace Graphics
 		m_anisotropic = anisotropic;
 		assert(m_anisotropic >= 1.0f && m_anisotropic <= 16.0f);
 		UpdateFilterState();
+	}
+
+	float ITexture::CalculateHeight(float width)
+	{
+		Vector2 size = GetSize();
+		float aspect = size.y / size.x;
+		return aspect * width;
+	}
+
+	float ITexture::CalculateWidth(float height)
+	{
+		Vector2 size = GetSize();
+		float aspect = size.x / size.y;
+		return aspect * height;
 	}
 
 	const Vector2i& Texture::GetSize() const

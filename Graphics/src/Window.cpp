@@ -2,8 +2,6 @@
 #include "Window.hpp"
 #include "KeyMap.hpp"
 #include "Image.hpp"
-#include "Gamepad_Impl.hpp"
-
 
 namespace Graphics
 {

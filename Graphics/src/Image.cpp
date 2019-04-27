@@ -17,7 +17,8 @@ namespace Graphics
 
 	auto Image::Create(const String& assetPath) -> optional<unique_ptr<Image>>
 	{
-		auto img = make_unique<Image>();
+		struct EnableMaker : public Image { using Image::Image; };
+		auto img = make_unique<EnableMaker>();
 		if (!img->Load(assetPath))
 			return {};
 		return std::move(img);
@@ -25,14 +26,16 @@ namespace Graphics
 
 	auto Image::Create(Vector2i size) -> optional<unique_ptr<Image>>
 	{
-		auto img = make_unique<Image>();
+		struct EnableMaker : public Image { using Image::Image; };
+		auto img = make_unique<EnableMaker>();
 		img->SetSize(size);
 		return std::move(img);
 	}
 
 	auto Image::CraeteScreenshot(Vector2i size, Vector2i pos) -> optional<unique_ptr<Image>>
 	{
-		auto img = make_unique<Image>();
+		struct EnableMaker : public Image { using Image::Image; };
+		auto img = make_unique<EnableMaker>();
 		img->SetSize(size);
 		if(img->Screenshot(pos))
 			return {};

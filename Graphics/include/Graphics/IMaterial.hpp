@@ -16,7 +16,7 @@ namespace Graphics
 		bool opaque = true;
 		MaterialBlendMode blendMode = MaterialBlendMode::Normal;
 
-		virtual void AssignShader(ShaderType t, IShader shader) = 0;
+		virtual void AssignShader(unique_ptr<IShader> shader) = 0;
 
 		virtual void Bind(const RenderState& rs, const MaterialParameterSet& params) = 0;
 
