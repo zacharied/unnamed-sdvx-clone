@@ -73,11 +73,6 @@ namespace Graphics
 		bool IsFullscreen() const;
 
 		int GetDisplayIndex() const;
-		
-		// Checks if a key is pressed
-		bool IsKeyPressed(int32 key) const;
-
-		ModifierKeys GetModifierKeys() const;
 
 		// Start allowing text input
 		void StartTextInput();

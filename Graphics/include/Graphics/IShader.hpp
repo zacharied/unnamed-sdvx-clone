@@ -14,11 +14,7 @@ namespace Graphics
 		Geometry
 	};
 
-	uint32 shaderStageMap[] = {
-		GL_VERTEX_SHADER_BIT,
-		GL_FRAGMENT_SHADER_BIT,
-		GL_GEOMETRY_SHADER_BIT,
-	};
+
 
 	// A single unlinked OpenGL shader
 	class IShader

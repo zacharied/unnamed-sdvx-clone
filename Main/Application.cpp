@@ -1014,7 +1014,7 @@ void Application::m_OnKeyPressed(int32 key)
 	// Fullscreen toggle
 	if(key == SDLK_RETURN)
 	{
-		if((g_gameWindow->GetModifierKeys() & ModifierKeys::Alt) == ModifierKeys::Alt)
+		if((g_input.GetModifierKeys() & ModifierKeys::Alt) == ModifierKeys::Alt)
 		{
 			g_gameWindow->SwitchFullscreen(
 				g_gameConfig.GetInt(GameConfigKeys::ScreenWidth), g_gameConfig.GetInt(GameConfigKeys::ScreenHeight),

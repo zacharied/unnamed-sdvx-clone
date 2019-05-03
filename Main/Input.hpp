@@ -38,7 +38,10 @@ public:
 	bool GetButton(Button button) const;
 	float GetAbsoluteLaser(int laser) const;
 	bool Are3BTsHeld() const;
-
+	int GetNumGamepads() const;
+	shared_ptr<Gamepad> OpenGamepad(int index);
+	Vector<String> GetGamepadDeviceNames();
+	ModifierKeys GetModifierKeys();
 	// Controller state as a string
 	// Primarily used for debugging
 	String GetControllerStateString() const;
@@ -59,6 +62,8 @@ public:
 	Delegate<Button> OnButtonReleased;
 
 private:
+	Map<int32, shared_ptr<class Gamepad>> m_gamepads;
+	Map<SDL_JoystickID, Gamepad*> m_joystickMap;
 	void m_InitKeyboardMapping();
 	void m_InitControllerMapping();
 	void m_OnButtonInput(Button b, bool pressed);
@@ -95,7 +100,7 @@ private:
 	float m_controllerSensitivity;
 	float m_controllerDeadzone;
 
-	Ref<Gamepad> m_gamepad;
+	shared_ptr<Gamepad> m_gamepad;
 
 	Graphics::Window* m_window = nullptr;
 };

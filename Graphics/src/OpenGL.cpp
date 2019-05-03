@@ -4,14 +4,6 @@
 #pragma comment(lib, "opengl32.lib")
 #endif
 
-#include "Mesh.hpp"
-#include "Texture.hpp"
-#include "Shader.hpp"
-#include "Font.hpp"
-#include "Material.hpp"
-#include "ParticleSystem.hpp"
-#include "Window.hpp"
-
 namespace Graphics
 {
 	OpenGL::~OpenGL()
@@ -25,6 +17,12 @@ namespace Graphics
 			context = nullptr;
 		}
 	}
+
+	uint32 shaderStageMap[] = {
+	GL_VERTEX_SHADER_BIT,
+	GL_FRAGMENT_SHADER_BIT,
+	GL_GEOMETRY_SHADER_BIT,
+	};
 
 	bool OpenGL::Init(Window& window, uint32 antialiasing)
 	{

@@ -2,7 +2,6 @@
 #include "OpenGL.hpp"
 #include "ParticleSystem.hpp"
 #include "Mesh.hpp"
-#include "VertexFormat.hpp"
 
 namespace Graphics
 {

@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Input.hpp"
 #include "GameConfig.hpp"
+#include "Gamepad/Gamepad_Impl.hpp"
 
 Input::~Input()
 {
@@ -40,13 +41,13 @@ void Input::Init(Graphics::Window& wnd)
 	if(m_laserDevice == InputDevice::Controller || m_buttonDevice == InputDevice::Controller)
 	{
 		int32 deviceIndex = g_gameConfig.GetInt(GameConfigKeys::Controller_DeviceID);
-		if(deviceIndex >= m_window->GetNumGamepads())
+		if(deviceIndex >= GetNumGamepads())
 		{
-			Logf("Out of range controller [%d], number of available controllers is %d", Logger::Error, deviceIndex, m_window->GetNumGamepads());
+			Logf("Out of range controller [%d], number of available controllers is %d", Logger::Error, deviceIndex, GetNumGamepads());
 		}
 		else
 		{
-			m_gamepad = m_window->OpenGamepad(deviceIndex);
+			m_gamepad = OpenGamepad(deviceIndex);
 			if(m_gamepad)
 			{
 				m_gamepad->OnButtonPressed.Add(this, &Input::m_OnGamepadButtonPressed);
@@ -65,7 +66,7 @@ void Input::Cleanup()
 	{
 		m_gamepad->OnButtonPressed.RemoveAll(this);
 		m_gamepad->OnButtonReleased.RemoveAll(this);
-		m_gamepad.Release();
+		m_gamepad.reset();
 	}
 	if(m_window)
 	{
@@ -182,6 +183,64 @@ bool Input::Are3BTsHeld() const
 	bool btd = GetButton(Input::Button::BT_3);
 
 	return (bta && btb && btc) || (bta && btb && btd) || (bta && btc && btd) || (btb && btc && btd);
+}
+
+int Input::GetNumGamepads() const
+{
+	return SDL_NumJoysticks();
+}
+
+shared_ptr<Gamepad> Input::OpenGamepad(int deviceIndex)
+{
+	auto openGamepad = m_gamepads.find(deviceIndex);
+	if (openGamepad != m_gamepads.end())
+		return openGamepad->second;
+	shared_ptr<Gamepad> newGamepad;
+
+	Gamepad_Impl* gamepadImpl = new Gamepad_Impl();
+	// Try to initialize new device
+	if (gamepadImpl->Init(m_window, deviceIndex))
+	{
+		newGamepad = shared_ptr<Gamepad>(gamepadImpl);
+
+		// Receive joystick events
+		SDL_JoystickEventState(SDL_ENABLE);
+	}
+	else
+	{
+		delete gamepadImpl;
+	}
+	if (newGamepad)
+	{
+		m_gamepads.Add(deviceIndex, newGamepad);
+		m_joystickMap.Add(SDL_JoystickInstanceID(gamepadImpl->m_joystick), gamepadImpl);
+	}
+	return newGamepad;
+}
+
+Vector<String> Input::GetGamepadDeviceNames()
+{
+	Vector<String> ret;
+	uint32 numJoysticks = SDL_NumJoysticks();
+	for (uint32 i = 0; i < numJoysticks; i++)
+	{
+		SDL_Joystick* joystick = SDL_JoystickOpen(i);
+		if (!joystick)
+		{
+			continue;
+		}
+		String deviceName = SDL_JoystickName(joystick);
+		ret.Add(deviceName);
+
+		SDL_JoystickClose(joystick);
+	}
+	return ret;
+}
+
+ModifierKeys Input::GetModifierKeys()
+{
+	///TODO: Implement
+	return ModifierKeys();
 }
 
 String Input::GetControllerStateString() const

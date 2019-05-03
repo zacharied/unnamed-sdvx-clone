@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "Gamepad_Impl.hpp"
-#include "Window.hpp"
 
 namespace Graphics
 {

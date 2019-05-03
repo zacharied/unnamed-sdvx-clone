@@ -28,7 +28,7 @@ private:
 	float d = 0.0f; // -2 - 2
 	int e = 0;
 	int f = 0;
-	Ref<Gamepad> m_gamepad;
+	shared_ptr<Gamepad> m_gamepad;
 	Vector<String> m_textSettings;
 
 public:
@@ -45,7 +45,7 @@ public:
 	}
 	bool Init()
 	{
-		m_gamepad = g_gameWindow->OpenGamepad(0);
+		m_gamepad = g_input.OpenGamepad(0);
 		return true;
 	}
 	~Test_Impl()

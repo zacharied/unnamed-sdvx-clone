@@ -2,6 +2,12 @@
 #include <Audio/Sample.hpp>
 #include <Shared/Jobs.hpp>
 #include <Shared/Thread.hpp>
+#include <Graphics/Font.hpp>
+#include <Graphics/Window.hpp>
+#include <Graphics/Texture.hpp>
+#include <Graphics/Image.hpp>
+#include <Graphics/Material.hpp>
+#include <Graphics/RenderQueue.hpp>
 #define DISCORD_APPLICATION_ID "514489760568573952"
 extern class OpenGL* g_gl;
 extern class GUIState g_guiState;
@@ -15,6 +21,8 @@ extern class Input g_input;
 #define VERSION_MAJOR 0
 #define VERSION_MINOR 3
 #define VERSION_PATCH 1
+
+using namespace Graphics;
 
 class Application
 {
