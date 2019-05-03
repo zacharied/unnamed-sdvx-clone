@@ -11,11 +11,11 @@
 
 struct Label
 {
-	Text text;
+	shared_ptr<IText> text;
 	int size;
 	float scale;
-	FontRes::TextOptions opt;
-	Graphics::Font* font;
+	Font::TextOptions opt;
+	shared_ptr<Graphics::Font> font;
 	String content;
 };
 
@@ -31,7 +31,7 @@ struct ImageAnimation
 	float SecondsPerFrame;
 	float Timer;
 	bool LoadComplete;
-	Vector<Graphics::Image> Frames;
+	Vector<shared_ptr<Graphics::Image>> Frames;
 	Thread* JobThread;
 	lua_State* State;
 };
@@ -45,14 +45,14 @@ struct GUIState
 	Map<lua_State*, Map<int, NVGpaint>> paintCache;
 	Map<lua_State*, int> nextTextId;
 	Map<lua_State*, int> nextPaintId;
-	Map<String, Graphics::Font> fontCahce;
+	Map<String, shared_ptr<Graphics::Font>> fontCahce;
 	Map<lua_State*, Set<int>> vgImages;
-	Graphics::Font* currentFont;
+	shared_ptr<Graphics::Font> currentFont;
 	Vector4 fillColor;
 	int textAlign;
 	int fontSize;
-	Material* fontMaterial;
-	Material* fillMaterial;
+	shared_ptr<Material> fontMaterial;
+	shared_ptr<Material> fillMaterial;
 	NVGcolor otrColor; //outer color
 	NVGcolor inrColor; //inner color
 	NVGcolor imageTint;
@@ -71,17 +71,18 @@ GUIState g_guiState;
 static int LoadFont(const char* name, const char* filename)
 {
 	{
-		Graphics::Font* cached = g_guiState.fontCahce.Find(name);
-		if (cached)
+		auto cached = g_guiState.fontCahce.find(name);
+		if (cached != g_guiState.fontCahce.end())
 		{
-			g_guiState.currentFont = cached;
+			g_guiState.currentFont = cached->second;
 		}
 		else
 		{
 			String path = filename;
-			Graphics::Font newFont = FontRes::Create(g_gl, path);
-			g_guiState.fontCahce.Add(name, newFont);
-			g_guiState.currentFont = g_guiState.fontCahce.Find(name);
+			auto newFont = Graphics::Font::Create(path);
+			assert(newFont);
+			g_guiState.fontCahce.Add(name, std::move(*newFont));
+			g_guiState.currentFont = g_guiState.fontCahce[name];
 		}
 	}
 
@@ -113,7 +114,9 @@ static void AnimationLoader(Vector<FileInfo> files, ImageAnimation* ia)
 
 	for (size_t i = 0; i < ia->FrameCount; i++)
 	{
-		ia->Frames.Add(Graphics::ImageRes::Create(files[i].fullPath));
+		auto newImg = Graphics::Image::Create(files[i].fullPath);
+		assert(newImg);
+		ia->Frames.Add(std::move(*newImg));
 	}
 	ia->LoadComplete = true;
 }
@@ -409,12 +412,12 @@ static int lCreateLabel(lua_State* L /*const char* text, int size, bool monospac
 	int monospace = luaL_checkinteger(L, 3);
 
 	Label newLabel;
-	newLabel.text = (*g_guiState.currentFont)->CreateText(Utility::ConvertToWString(text), 
+	newLabel.text = g_guiState.currentFont->CreateText(Utility::ConvertToWString(text), 
 		size * g_guiState.t.GetScale().y,
-		(FontRes::TextOptions)monospace);
+		(Font::TextOptions)monospace);
 	newLabel.scale = g_guiState.t.GetScale().y;
 	newLabel.size = size;
-	newLabel.opt = (FontRes::TextOptions)monospace;
+	newLabel.opt = (Font::TextOptions)monospace;
 	newLabel.font = g_guiState.currentFont;
 	newLabel.content = text;
 	g_guiState.textCache.FindOrAdd(L).Add(g_guiState.nextTextId[L], newLabel);
@@ -429,7 +432,7 @@ static int lUpdateLabel(lua_State* L /*int labelId, const char* text, int size*/
 	const char* text = luaL_checkstring(L, 2);
 	int size = luaL_checkinteger(L, 3);
 	Label updated;
-	updated.text = (*g_guiState.currentFont)->CreateText(Utility::ConvertToWString(text), size * g_guiState.t.GetScale().y);
+	updated.text = g_guiState.currentFont->CreateText(Utility::ConvertToWString(text), size * g_guiState.t.GetScale().y);
 	updated.size = size;
 	updated.scale = g_guiState.t.GetScale().y;
 	updated.content = text;
@@ -458,40 +461,40 @@ static int lDrawLabel(lua_State* L /*int labelId, float x, float y, float maxWid
 	if (fabsf(te.scale - g_guiState.t.GetScale().y) > 0.001)
 	{
 		te.scale = g_guiState.t.GetScale().y;
-		te.text = (*te.font)->CreateText(Utility::ConvertToWString(te.content), Math::Round((float)te.size * te.scale));
+		te.text = te.font->CreateText(Utility::ConvertToWString(te.content), Math::Round((float)te.size * te.scale));
 		g_guiState.textCache[L][labelId] = te;
 	}
 	float mwScale = 1.0f;
 	if (maxWidth > 0)
 	{
-		mwScale = Math::Min(1.0f, maxWidth / ((float)te.text->size.x / te.scale));
+		mwScale = Math::Min(1.0f, maxWidth / ((float)te.text->GetSize().x / te.scale));
 		textTransform *= Transform::Scale(Vector2(mwScale));
 	}
 
 	//vertical alignment
 	if ((g_guiState.textAlign & (int)NVGalign::NVG_ALIGN_BOTTOM) != 0)
 	{
-		textTransform *= Transform::Translation(Vector2(0, -te.text->size.y));
+		textTransform *= Transform::Translation(Vector2(0, -te.text->GetSize().y));
 	}
 	else if ((g_guiState.textAlign & (int)NVGalign::NVG_ALIGN_MIDDLE) != 0)
 	{
-		textTransform *= Transform::Translation(Vector2(0, -te.text->size.y / 2));
+		textTransform *= Transform::Translation(Vector2(0, -te.text->GetSize().y / 2));
 	}
 
 	//horizontal alignment
 	if ((g_guiState.textAlign & (int)NVGalign::NVG_ALIGN_CENTER) != 0)
 	{
-		textTransform *= Transform::Translation(Vector2(-te.text->size.x / 2, 0));
+		textTransform *= Transform::Translation(Vector2(-te.text->GetSize().x / 2, 0));
 	}
 	else if ((g_guiState.textAlign & (int)NVGalign::NVG_ALIGN_RIGHT) != 0)
 	{
-		textTransform *= Transform::Translation(Vector2(-te.text->size.x, 0));
+		textTransform *= Transform::Translation(Vector2(-te.text->GetSize().x, 0));
 	}
 
 
 	MaterialParameterSet params;
 	params.SetParameter("color", g_guiState.fillColor);
-	g_guiState.rq->DrawScissored(g_guiState.scissor ,textTransform, te.text, *g_guiState.fontMaterial, params);
+	g_guiState.rq->DrawScissored(g_guiState.scissor ,textTransform, te.text.get(), g_guiState.fontMaterial.get(), params);
 	return 0;
 }
 
@@ -609,10 +612,10 @@ static int lFastRect(lua_State* L /*float x, float y, float w, float h*/)
 	y = luaL_checknumber(L, 2);
 	w = luaL_checknumber(L, 3);
 	h = luaL_checknumber(L, 4);
-	Mesh quad = Graphics::MeshGenerators::Quad(g_gl, Vector2(x, y), Vector2(w, h));
+	auto newQuad = Graphics::Mesh::GenerateQuad(Vector2(x, y), Vector2(w, h));
 	MaterialParameterSet params;
 	params.SetParameter("color", g_guiState.fillColor);
-	g_guiState.rq->DrawScissored(g_guiState.scissor, g_guiState.t, quad, *g_guiState.fillMaterial, params);
+	g_guiState.rq->DrawScissored(g_guiState.scissor, g_guiState.t, newQuad.get(), g_guiState.fillMaterial.get(), params);
 	return 0;
 }
 
@@ -625,32 +628,32 @@ static int lFastText(lua_State* L /* String utf8string, float x, float y */)
 	y = luaL_checknumber(L, 3);
 
 	WString text = Utility::ConvertToWString(s);
-	Text te = (*g_guiState.currentFont)->CreateText(text, g_guiState.fontSize);
+	shared_ptr<IText> te = std::move(g_guiState.currentFont->CreateText(text, g_guiState.fontSize));
 	Transform textTransform = g_guiState.t;
 	textTransform *= Transform::Translation(Vector2(x, y));
 
 	//vertical alignment
 	if ((g_guiState.textAlign & (int)NVGalign::NVG_ALIGN_BOTTOM) != 0)
 	{
-		textTransform *= Transform::Translation(Vector2(0, -te->size.y));
+		textTransform *= Transform::Translation(Vector2(0, -te->GetSize().y));
 	}
 	else if ((g_guiState.textAlign & (int)NVGalign::NVG_ALIGN_MIDDLE) != 0)
 	{
-		textTransform *= Transform::Translation(Vector2(0, -te->size.y / 2));
+		textTransform *= Transform::Translation(Vector2(0, -te->GetSize().y / 2));
 	}
 
 	//horizontal alignment
 	if ((g_guiState.textAlign & (int)NVGalign::NVG_ALIGN_CENTER) != 0)
 	{
-		textTransform *= Transform::Translation(Vector2(-te->size.x / 2, 0));
+		textTransform *= Transform::Translation(Vector2(-te->GetSize().x / 2, 0));
 	}
 	else if ((g_guiState.textAlign & (int)NVGalign::NVG_ALIGN_RIGHT) != 0)
 	{
-		textTransform *= Transform::Translation(Vector2(-te->size.x, 0));
+		textTransform *= Transform::Translation(Vector2(-te->GetSize().x, 0));
 	}
 	MaterialParameterSet params;
 	params.SetParameter("color", g_guiState.fillColor);
-	g_guiState.rq->DrawScissored(g_guiState.scissor, textTransform, te, *g_guiState.fontMaterial, params);
+	g_guiState.rq->DrawScissored(g_guiState.scissor, textTransform, te.get(), g_guiState.fontMaterial.get(), params);
 
 	return 0;
 }
@@ -884,8 +887,8 @@ static int lLabelSize(lua_State* L /*int label*/)
 {
 	int label = luaL_checkinteger(L, 1);
 	Label l = g_guiState.textCache[L][label];
-	lua_pushnumber(L, l.text->size.x / l.scale);
-	lua_pushnumber(L, l.text->size.y / l.scale);
+	lua_pushnumber(L, l.text->GetSize().x / l.scale);
+	lua_pushnumber(L, l.text->GetSize().y / l.scale);
 	return 2;
 }
 
@@ -895,9 +898,9 @@ static int lFastTextSize(lua_State* L /* char* text */)
 	s = luaL_checkstring(L, 1);
 
 	WString text = Utility::ConvertToWString(s);
-	Text l = (*g_guiState.currentFont)->CreateText(text, g_guiState.fontSize);
-	lua_pushnumber(L, l->size.x);
-	lua_pushnumber(L, l->size.y);
+	auto l = g_guiState.currentFont->CreateText(text, g_guiState.fontSize);
+	lua_pushnumber(L, l->GetSize().x);
+	lua_pushnumber(L, l->GetSize().y);
 	return 2;
 }
 static int lImageSize(lua_State* L /*int image*/)

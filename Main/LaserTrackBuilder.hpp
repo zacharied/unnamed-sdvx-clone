@@ -9,12 +9,12 @@ public:
 	void Update(MapTime newTime);
 
 	// Generates a normal segment
-	Mesh GenerateTrackMesh(class BeatmapPlayback& playback, LaserObjectState* laser);
+	shared_ptr<Mesh> GenerateTrackMesh(class BeatmapPlayback& playback, LaserObjectState* laser);
 
 	// Generate the starting segment of a laser
-	Mesh GenerateTrackEntry(class BeatmapPlayback& playback, LaserObjectState* laser);
+	shared_ptr<Mesh> GenerateTrackEntry(class BeatmapPlayback& playback, LaserObjectState* laser);
 	// Generate the ending segment of a laser
-	Mesh GenerateTrackExit(class BeatmapPlayback& playback, LaserObjectState* laser);
+	shared_ptr<Mesh> GenerateTrackExit(class BeatmapPlayback& playback, LaserObjectState* laser);
 
 	// Laser length scale at a given position
 	float GetLaserLengthScaleAt(MapTime time);
@@ -53,14 +53,14 @@ private:
 
 private:
 	void m_RecalculateConstants();
-	void m_Cleanup(MapTime newTime, Map<LaserObjectState*, Mesh>& arr);
+	void m_Cleanup(MapTime newTime, Map<LaserObjectState*, shared_ptr<Mesh>>& arr);
 	class OpenGL* m_gl;
 	class Track* m_track;
 
 	float m_trackWidth;
 	float m_laserWidth;
 	uint32 m_laserIndex;
-	Map<LaserObjectState*, Mesh> m_objectCache;
-	Map<LaserObjectState*, Mesh> m_cachedEntries;
-	Map<LaserObjectState*, Mesh> m_cachedExits;
+	Map<LaserObjectState*, shared_ptr<Mesh>> m_objectCache;
+	Map<LaserObjectState*, shared_ptr<Mesh>> m_cachedEntries;
+	Map<LaserObjectState*, shared_ptr<Mesh>> m_cachedExits;
 };

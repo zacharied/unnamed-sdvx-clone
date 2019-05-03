@@ -92,8 +92,8 @@ private:
 	//Ref<Label> m_scoreText;
 
 	// Texture of the map jacket image, if available
-	Image m_jacketImage;
-	Texture m_jacketTexture;
+	shared_ptr<Image> m_jacketImage;
+	shared_ptr<Texture> m_jacketTexture;
 
 	// The beatmap
 	Ref<Beatmap> m_beatmap;
@@ -144,12 +144,12 @@ private:
 	bool m_manualTiltEnabled = false;
 
 	// Particle effects
-	Material particleMaterial;
-	Texture basicParticleTexture;
-	Texture squareParticleTexture;
-	ParticleSystem m_particleSystem;
-	Ref<ParticleEmitter> m_laserFollowEmitters[2];
-	Ref<ParticleEmitter> m_holdEmitters[6];
+	shared_ptr<Material> particleMaterial;
+	shared_ptr<Texture> basicParticleTexture;
+	shared_ptr<Texture> squareParticleTexture;
+	shared_ptr<ParticleSystem> m_particleSystem;
+	shared_ptr<ParticleEmitter> m_laserFollowEmitters[2];
+	shared_ptr<ParticleEmitter> m_holdEmitters[6];
 	GameFlags m_flags;
 	bool m_manualExit = false;
 
@@ -344,7 +344,9 @@ public:
 
 
 		// Load particle material
-		m_particleSystem = ParticleSystemRes::Create(g_gl);
+		auto newPS = ParticleSystem::Create();
+		assert(newPS);
+		m_particleSystem = std::move(*newPS);
 
 
 		return true;
@@ -535,14 +537,14 @@ public:
 		{
 			if(m_laserFollowEmitters[i])
 			{
-				m_laserFollowEmitters[i].Release();
+				m_laserFollowEmitters[i] = nullptr;
 			}
 		}
 		for(uint32 i = 0; i < 6; i++)
 		{
 			if(m_holdEmitters[i])
 			{
-				m_holdEmitters[i].Release();
+				m_holdEmitters[i] = nullptr;
 			}
 		}
 
@@ -608,7 +610,7 @@ public:
 		m_background->Render(deltaTime);
 
 		// Main render queue
-		RenderQueue renderQueue(g_gl, rs);
+		RenderQueue renderQueue(rs);
 
 		// Get objects in range
 		MapTime msViewRange = m_playback.ViewDistanceToDuration(m_track->GetViewRange());
@@ -650,7 +652,7 @@ public:
 		//	this is because otherwise some of the scoring elements would get clipped to
 		//	the track's near and far planes
 		rs = m_camera.CreateRenderState(false);
-		RenderQueue scoringRq(g_gl, rs);
+		RenderQueue scoringRq(rs);
 
 		// Copy over laser position and extend info
 		for(uint32 i = 0; i < 2; i++)
@@ -670,7 +672,6 @@ public:
 		}
 		m_track->DrawOverlays(scoringRq);
 		float comboZoom = Math::Max(0.0f, (1.0f - (m_comboAnimation.SecondsAsFloat() / 0.2f)) * 0.5f);
-		//m_track->DrawCombo(scoringRq, m_scoring.currentComboCounter, m_comboColors[m_scoring.comboState], 1.0f + comboZoom);
 
 		// Render queues
 		renderQueue.Process();
@@ -695,7 +696,7 @@ public:
 			{
 				if(m_laserFollowEmitters[i])
 				{
-					m_laserFollowEmitters[i].Release();
+					m_laserFollowEmitters[i] = nullptr;
 				}
 			}
 		}
@@ -717,7 +718,7 @@ public:
 			{
 				if(m_holdEmitters[i])
 				{
-					m_holdEmitters[i].Release();
+					m_holdEmitters[i] = nullptr;
 				}
 			}
 
@@ -1188,92 +1189,96 @@ public:
 		m_particleSystem->Render(rs, deltaTime);
 	}
 	
-	Ref<ParticleEmitter> CreateTrailEmitter(const Color& color)
+	shared_ptr<ParticleEmitter> CreateTrailEmitter(const Color& color)
 	{
-		Ref<ParticleEmitter> emitter = m_particleSystem->AddEmitter();
-		emitter->material = particleMaterial;
-		emitter->texture = basicParticleTexture;
+		shared_ptr<ParticleEmitter> emitter = std::make_shared<ParticleEmitter>();
+		m_particleSystem->AddEmitter(emitter.get());
+		emitter->material = particleMaterial.get();
+		emitter->texture = basicParticleTexture.get();
 		emitter->loops = 0;
 		emitter->duration = 5.0f;
-		emitter->SetSpawnRate(PPRandomRange<float>(250, 300));
-		emitter->SetStartPosition(PPBox({ 0.5f, 0.0f, 0.0f }));
-		emitter->SetStartSize(PPRandomRange<float>(0.25f, 0.4f));
-		emitter->SetScaleOverTime(PPRange<float>(2.0f, 1.0f));
-		emitter->SetFadeOverTime(PPRangeFadeIn<float>(1.0f, 0.0f, 0.4f));
-		emitter->SetLifetime(PPRandomRange<float>(0.17f, 0.2f));
-		emitter->SetStartDrag(PPConstant<float>(0.0f));
-		emitter->SetStartVelocity(PPConstant<Vector3>({ 0, -4.0f, 2.0f }));
-		emitter->SetSpawnVelocityScale(PPRandomRange<float>(0.9f, 2));
-		emitter->SetStartColor(PPConstant<Color>((Color)(color * 0.7f)));
-		emitter->SetGravity(PPConstant<Vector3>(Vector3(0.0f, 0.0f, -9.81f)));
+		emitter->Set_SpawnRate(new PPRandomRange<float>(250, 300));
+		emitter->Set_StartPosition(new PPBox({ 0.5f, 0.0f, 0.0f }));
+		emitter->Set_StartSize(new PPRandomRange<float>(0.25f, 0.4f));
+		emitter->Set_ScaleOverTime(new PPRange<float>(2.0f, 1.0f));
+		emitter->Set_FadeOverTime(new PPRangeFadeIn<float>(1.0f, 0.0f, 0.4f));
+		emitter->Set_Lifetime(new PPRandomRange<float>(0.17f, 0.2f));
+		emitter->Set_StartDrag(new PPConstant<float>(0.0f));
+		emitter->Set_StartVelocity(new PPConstant<Vector3>({ 0, -4.0f, 2.0f }));
+		emitter->Set_SpawnVelocityScale(new PPRandomRange<float>(0.9f, 2));
+		emitter->Set_StartColor(new PPConstant<Color>((Color)(color * 0.7f)));
+		emitter->Set_Gravity(new PPConstant<Vector3>(Vector3(0.0f, 0.0f, -9.81f)));
 		emitter->position.y = 0.0f;
 		emitter->position = m_track->TransformPoint(emitter->position);
 		emitter->scale = 0.3f;
 		return emitter;
 	}
-	Ref<ParticleEmitter> CreateHoldEmitter(const Color& color, float width)
+	shared_ptr<ParticleEmitter> CreateHoldEmitter(const Color& color, float width)
 	{
-		Ref<ParticleEmitter> emitter = m_particleSystem->AddEmitter();
-		emitter->material = particleMaterial;
-		emitter->texture = basicParticleTexture;
+		shared_ptr<ParticleEmitter> emitter = std::make_shared<ParticleEmitter>();
+		m_particleSystem->AddEmitter(emitter.get());
+		emitter->material = particleMaterial.get();
+		emitter->texture = basicParticleTexture.get();
 		emitter->loops = 0;
 		emitter->duration = 5.0f;
-		emitter->SetSpawnRate(PPRandomRange<float>(50, 100));
-		emitter->SetStartPosition(PPBox({ width, 0.0f, 0.0f }));
-		emitter->SetStartSize(PPRandomRange<float>(0.3f, 0.35f));
-		emitter->SetScaleOverTime(PPRange<float>(1.2f, 1.0f));
-		emitter->SetFadeOverTime(PPRange<float>(1.0f, 0.0f));
-		emitter->SetLifetime(PPRandomRange<float>(0.10f, 0.15f));
-		emitter->SetStartDrag(PPConstant<float>(0.0f));
-		emitter->SetStartVelocity(PPConstant<Vector3>({ 0.0f, 0.0f, 0.0f }));
-		emitter->SetSpawnVelocityScale(PPRandomRange<float>(0.2f, 0.2f));
-		emitter->SetStartColor(PPConstant<Color>((Color)(color*0.6f)));
-		emitter->SetGravity(PPConstant<Vector3>(Vector3(0.0f, 0.0f, -4.81f)));
+		emitter->Set_SpawnRate(new PPRandomRange<float>(50, 100));
+		emitter->Set_StartPosition(new PPBox({ width, 0.0f, 0.0f }));
+		emitter->Set_StartSize(new PPRandomRange<float>(0.3f, 0.35f));
+		emitter->Set_ScaleOverTime(new PPRange<float>(1.2f, 1.0f));
+		emitter->Set_FadeOverTime(new PPRange<float>(1.0f, 0.0f));
+		emitter->Set_Lifetime(new PPRandomRange<float>(0.10f, 0.15f));
+		emitter->Set_StartDrag(new PPConstant<float>(0.0f));
+		emitter->Set_StartVelocity(new PPConstant<Vector3>({ 0.0f, 0.0f, 0.0f }));
+		emitter->Set_SpawnVelocityScale(new PPRandomRange<float>(0.2f, 0.2f));
+		emitter->Set_StartColor(new PPConstant<Color>((Color)(color*0.6f)));
+		emitter->Set_Gravity(new PPConstant<Vector3>(Vector3(0.0f, 0.0f, -4.81f)));
 		emitter->position.y = 0.0f;
 		emitter->position = m_track->TransformPoint(emitter->position);
 		emitter->scale = 1.0f;
 		return emitter;
 	}
-	Ref<ParticleEmitter> CreateExplosionEmitter(const Color& color, const Vector3 dir)
+	shared_ptr<ParticleEmitter> CreateExplosionEmitter(const Color& color, const Vector3 dir)
 	{
-		Ref<ParticleEmitter> emitter = m_particleSystem->AddEmitter();
-		emitter->material = particleMaterial;
-		emitter->texture = basicParticleTexture;
+		shared_ptr<ParticleEmitter> emitter = std::make_shared<ParticleEmitter>();
+		m_particleSystem->AddEmitter(emitter.get());
+		emitter->material = particleMaterial.get();
+		emitter->texture = basicParticleTexture.get();
 		emitter->loops = 1;
 		emitter->duration = 0.2f;
-		emitter->SetSpawnRate(PPRange<float>(200, 0));
-		emitter->SetStartPosition(PPSphere(0.1f));
-		emitter->SetStartSize(PPRandomRange<float>(0.7f, 1.1f));
-		emitter->SetFadeOverTime(PPRangeFadeIn<float>(0.9f, 0.0f, 0.0f));
-		emitter->SetLifetime(PPRandomRange<float>(0.22f, 0.3f));
-		emitter->SetStartDrag(PPConstant<float>(0.2f));
-		emitter->SetSpawnVelocityScale(PPRandomRange<float>(1.0f, 4.0f));
-		emitter->SetScaleOverTime(PPRange<float>(1.0f, 0.4f));
-		emitter->SetStartVelocity(PPConstant<Vector3>(dir * 5.0f));
-		emitter->SetStartColor(PPConstant<Color>(color));
-		emitter->SetGravity(PPConstant<Vector3>(Vector3(0.0f, 0.0f, -9.81f)));
+		emitter->Set_SpawnRate(new PPRange<float>(200, 0));
+		emitter->Set_StartPosition(new PPSphere(0.1f));
+		emitter->Set_StartSize(new PPRandomRange<float>(0.7f, 1.1f));
+		emitter->Set_FadeOverTime(new PPRangeFadeIn<float>(0.9f, 0.0f, 0.0f));
+		emitter->Set_Lifetime(new PPRandomRange<float>(0.22f, 0.3f));
+		emitter->Set_StartDrag(new PPConstant<float>(0.2f));
+		emitter->Set_SpawnVelocityScale(new PPRandomRange<float>(1.0f, 4.0f));
+		emitter->Set_ScaleOverTime(new PPRange<float>(1.0f, 0.4f));
+		emitter->Set_StartVelocity(new PPConstant<Vector3>(dir * 5.0f));
+		emitter->Set_StartColor(new PPConstant<Color>(color));
+		emitter->Set_Gravity(new PPConstant<Vector3>(Vector3(0.0f, 0.0f, -9.81f)));
 		emitter->position.y = 0.0f;
 		emitter->position = m_track->TransformPoint(emitter->position);
 		emitter->scale = 0.4f;
 		return emitter;
 	}
-	Ref<ParticleEmitter> CreateHitEmitter(const Color& color, float width)
+	shared_ptr<ParticleEmitter> CreateHitEmitter(const Color& color, float width)
 	{
-		Ref<ParticleEmitter> emitter = m_particleSystem->AddEmitter();
-		emitter->material = particleMaterial;
-		emitter->texture = basicParticleTexture;
+		shared_ptr<ParticleEmitter> emitter = std::make_shared<ParticleEmitter>();
+		m_particleSystem->AddEmitter(emitter.get());
+		emitter->material = particleMaterial.get();
+		emitter->texture = basicParticleTexture.get();
 		emitter->loops = 1;
 		emitter->duration = 0.15f;
-		emitter->SetSpawnRate(PPRange<float>(50, 0));
-		emitter->SetStartPosition(PPBox(Vector3(width * 0.5f, 0.0f, 0)));
-		emitter->SetStartSize(PPRandomRange<float>(0.3f, 0.1f));
-		emitter->SetFadeOverTime(PPRangeFadeIn<float>(0.7f, 0.0f, 0.0f));
-		emitter->SetLifetime(PPRandomRange<float>(0.35f, 0.4f));
-		emitter->SetStartDrag(PPConstant<float>(6.0f));
-		emitter->SetSpawnVelocityScale(PPConstant<float>(0.0f));
-		emitter->SetScaleOverTime(PPRange<float>(1.0f, 0.4f));
-		emitter->SetStartVelocity(PPCone(Vector3(0,0,-1), 90.0f, 1.0f, 4.0f));
-		emitter->SetStartColor(PPConstant<Color>(color));
+		emitter->Set_SpawnRate(new PPRange<float>(50, 0));
+		emitter->Set_StartPosition(new PPBox(Vector3(width * 0.5f, 0.0f, 0)));
+		emitter->Set_StartSize(new PPRandomRange<float>(0.3f, 0.1f));
+		emitter->Set_FadeOverTime(new PPRangeFadeIn<float>(0.7f, 0.0f, 0.0f));
+		emitter->Set_Lifetime(new PPRandomRange<float>(0.35f, 0.4f));
+		emitter->Set_StartDrag(new PPConstant<float>(6.0f));
+		emitter->Set_SpawnVelocityScale(new PPConstant<float>(0.0f));
+		emitter->Set_ScaleOverTime(new PPRange<float>(1.0f, 0.4f));
+		emitter->Set_StartVelocity(new PPCone(Vector3(0,0,-1), 90.0f, 1.0f, 4.0f));
+		emitter->Set_StartColor(new PPConstant<Color>(color));
 		emitter->position.y = 0.0f;
 		return emitter;
 	}
@@ -1385,7 +1390,7 @@ public:
 
 		float dir = Math::Sign(object->points[1] - object->points[0]);
 		float laserPos = m_track->trackWidth * object->points[1] - m_track->trackWidth * 0.5f;
-		Ref<ParticleEmitter> ex = CreateExplosionEmitter(m_track->laserColors[object->index], Vector3(dir, 0, 0));
+		shared_ptr<ParticleEmitter> ex = CreateExplosionEmitter(m_track->laserColors[object->index], Vector3(dir, 0, 0));
 		ex->position = Vector3(laserPos, 0.0f, -0.05f);
 		ex->position = m_track->TransformPoint(ex->position);
 	}
@@ -1424,7 +1429,7 @@ public:
 			// Create hit effect particle
 			Color hitColor = (buttonIdx < 4) ? Color::White : Color::FromHSV(20, 0.7f, 1.0f);
 			float hitWidth = (buttonIdx < 4) ? m_track->buttonWidth : m_track->fxbuttonWidth;
-			Ref<ParticleEmitter> emitter = CreateHitEmitter(hitColor, hitWidth);
+			shared_ptr<ParticleEmitter> emitter = CreateHitEmitter(hitColor, hitWidth);
 			emitter->position.x = m_track->GetButtonPlacement(buttonIdx);
 			emitter->position.z = -0.05f;
 			emitter->position.y = 0.0f;
@@ -1689,7 +1694,7 @@ public:
 		return false; // Default otherwise
 	}
 
-	virtual Texture GetJacketImage() override
+	virtual shared_ptr<Texture> GetJacketImage() override
 	{
 		return m_jacketTexture;
 	}

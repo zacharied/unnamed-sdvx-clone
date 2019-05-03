@@ -21,9 +21,7 @@ class ScoreScreen_Impl : public ScoreScreen
 private:
 	MapDatabase m_mapDatabase;
 	// Things for score screen
-	Graphics::Font m_specialFont;
 	Sample m_applause;
-	Texture m_categorizedHitTextures[4];
 	lua_State* m_lua = nullptr;
 	bool m_autoplay;
 	bool m_autoButtons;
@@ -45,8 +43,6 @@ private:
 	Vector<SimpleHitStat> m_simpleHitStats;
 
 	BeatmapSettings m_beatmapSettings;
-	Texture m_jacketImage;
-	Texture m_graphTex;
 	GameFlags m_flags;
 
 	void m_PushStringToTable(const char* name, String data)
@@ -142,20 +138,6 @@ public:
 		m_startPressed = false;
 		
 		m_beatmapSettings = game->GetBeatmap()->GetMapSettings();
-		m_jacketPath = Path::Normalize(game->GetMapRootPath() + Path::sep + m_beatmapSettings.jacketPath);
-		m_jacketImage = game->GetJacketImage();
-
-		// Make texture for performance graph samples
-		m_graphTex = TextureRes::Create(g_gl);
-		m_graphTex->Init(Vector2i(256, 1), Graphics::TextureFormat::RGBA8);
-		Colori graphPixels[256];
-		for (uint32 i = 0; i < 256; i++)
-		{
-			graphPixels[i].x = 255.0f * Math::Clamp(m_gaugeSamples[i], 0.0f, 1.0f);
-		}
-		m_graphTex->SetData(Vector2i(256, 1), graphPixels);
-		m_graphTex->SetWrap(Graphics::TextureWrap::Clamp, Graphics::TextureWrap::Clamp);
-
 	}
 	~ScoreScreen_Impl()
 	{
@@ -293,10 +275,10 @@ public:
 				}
 			}
 			Vector2i size(w, h);
-			Image screenshot = ImageRes::Screenshot(g_gl, size, { x,y });
+			auto screenshot = Image::CreateScreenshot(size, { x,y });
+			assert(screenshot);
 			String screenshotPath = "screenshots/" + Shared::Time::Now().ToString() + ".png";
-			screenshot->SavePNG(screenshotPath);
-			screenshot.Release();
+			screenshot.value()->SavePNG(screenshotPath);
 
 			lua_getglobal(m_lua, "screenshot_captured");
 			if (lua_isfunction(m_lua, -1))

@@ -24,6 +24,11 @@ namespace Graphics
 		return std::move(font);
 	}
 
+	unique_ptr<IText> Font::CreateText(const WString & str, uint32 nFontSize, TextOptions options)
+	{
+		return unique_ptr<IText>();
+	}
+
 	Font::~Font()
 	{
 		m_sizes.clear();

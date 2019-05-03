@@ -16,7 +16,7 @@ namespace Graphics
 		~Image() override;
 		static auto Create(const String& assetPath) -> optional<unique_ptr<Image>>;
 		static auto Create(Vector2i size = Vector2i{}) -> optional<unique_ptr<Image>>;
-		static auto CraeteScreenshot(Vector2i size = Vector2i(), Vector2i pos = Vector2i()) -> optional<unique_ptr<Image>>;
+		static auto CreateScreenshot(Vector2i size = Vector2i(), Vector2i pos = Vector2i()) -> optional<unique_ptr<Image>>;
 
 		void SetSize(Vector2i size) override;
 		void ReSize(Vector2i size) override;

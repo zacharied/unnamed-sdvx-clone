@@ -32,7 +32,7 @@ namespace Graphics
 		return std::move(img);
 	}
 
-	auto Image::CraeteScreenshot(Vector2i size, Vector2i pos) -> optional<unique_ptr<Image>>
+	auto Image::CreateScreenshot(Vector2i size, Vector2i pos) -> optional<unique_ptr<Image>>
 	{
 		struct EnableMaker : public Image { using Image::Image; };
 		auto img = make_unique<EnableMaker>();
