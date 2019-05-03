@@ -14,12 +14,11 @@ else(WIN32)
 	file(GLOB Platform_src "src/Linux/*.cpp")
 endif(WIN32)
 
-# Compiler stuff
-enable_cpp17()
 enable_precompiled_headers("${Tests_src}" src/stdafx.cpp)
 
 include_directories(include include/Tests src)
 add_library(Tests ${Tests_src} ${Tests_include} ${Platform_src})
+enable_cpp17(Tests)
 
 if(MSVC)
 	# SEH and Debug

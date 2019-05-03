@@ -3,11 +3,12 @@
 # Find files used for project
 file(GLOB Main_src "*.cpp" "*.hpp")
 
-# Compiler stuff
-enable_cpp17()
+
 
 include_directories(.)
 add_executable(Tests.Game ${Main_src})
+# Compiler stuff
+enable_cpp17(Tests.Game)
 set_output_postfixes(Tests.Game)
 enable_precompiled_headers("${Main_src}" stdafx.cpp)
 

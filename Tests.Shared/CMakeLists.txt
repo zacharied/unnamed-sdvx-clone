@@ -3,11 +3,12 @@
 # Find files used for project
 file(GLOB Main_src "*.cpp" "*.hpp")
 
-# Compiler stuff
-enable_cpp17()
+
 
 include_directories(.)
 add_executable(Tests.Shared ${Main_src})
+# Compiler stuff
+enable_cpp17(Tests.Shared)
 set_output_postfixes(Tests.Shared)
 
 if(MSVC)

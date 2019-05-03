@@ -17,13 +17,13 @@ endif(WIN32)
 file(GLOB Graphics_src ${Graphics_src} ${Platform_src})
 
 # Compiler stuff
-enable_cpp17()
 enable_precompiled_headers("${Graphics_src}" src/stdafx.cpp)
 precompiled_header_exclude("src/glew.c")
 
 # Look for static included GLEW before other directories
 include_directories(include include/Graphics src include/Graphics/glew)
 add_library(Graphics ${Graphics_src})
+enable_cpp17(Graphics)
 
 # Public include paths for library
 target_include_directories(Graphics PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/include/Graphics/glew)

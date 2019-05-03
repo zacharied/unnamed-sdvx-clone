@@ -20,12 +20,12 @@ else(WIN32)
 	endif(APPLE)
 endif(WIN32)
 
-# Compiler stuff
-enable_cpp17()
+
 enable_precompiled_headers("${Shared_src}" src/stdafx.cpp)
 
 include_directories(include include/Shared src)
 add_library(Shared ${Shared_src} ${Shared_include} ${Platform_src})
+enable_cpp17(Shared)
 target_link_libraries(Shared lua)
 
 # Public include paths for library

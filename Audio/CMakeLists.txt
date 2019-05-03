@@ -25,12 +25,12 @@ endif(WIN32)
 file(GLOB Audio_src ${Audio_src} ${Platform_src})
 
 # Compiler stuff
-enable_cpp17()
 enable_precompiled_headers("${Audio_src}" src/stdafx.cpp)
 precompiled_header_exclude("${minimp3_src}" "${soundtouch_src}")
 
 include_directories(include include/Audio src src/soundtouch/src src/soundtouch/include src/minimp3 ${ma_root} ${ma_root}/extras)
 add_library(Audio ${Audio_src} ${minimp3_src} ${soundtouch_src})
+enable_cpp17(Audio)
 
 
 # Public include paths for library
