@@ -46,6 +46,7 @@ namespace Graphics
 		static auto Create(const String& vsPath, const String& fsPath) -> optional<unique_ptr<Material>>;
 
 		bool opaque = true;
+		bool GetOpaque() override;
 		MaterialBlendMode blendMode = MaterialBlendMode::Normal;
 
 		void AssignShader(unique_ptr<IShader> shader) override;

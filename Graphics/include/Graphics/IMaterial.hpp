@@ -13,7 +13,7 @@ namespace Graphics
 	public:
 		virtual ~IMaterial() = default;
 
-		bool opaque = true;
+		virtual bool GetOpaque() = 0;
 		MaterialBlendMode blendMode = MaterialBlendMode::Normal;
 
 		virtual void AssignShader(unique_ptr<IShader> shader) = 0;

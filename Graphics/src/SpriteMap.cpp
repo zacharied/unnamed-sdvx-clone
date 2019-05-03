@@ -33,7 +33,7 @@ namespace Graphics
 	{
 		// Create a new segment
 		auto nI = (uint32) m_segments.size();
-		auto pCurrentSegment = m_segments.Add(Segment{});
+		Segment& pCurrentSegment = m_segments.Add(Segment{});
 		pCurrentSegment.coords.size = image.GetSize();
 
 		// Get a category that has space

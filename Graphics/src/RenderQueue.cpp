@@ -65,7 +65,7 @@ namespace Graphics
 				}
 
 				// Setup Render state for transparent object
-				if(mat->opaque)
+				if(mat->GetOpaque())
 				{
 					if(blendEnabled)
 					{

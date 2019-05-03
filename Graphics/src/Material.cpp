@@ -329,4 +329,8 @@ namespace Graphics
 
 		return std::move(mat);
 	}
+	bool Material::GetOpaque()
+	{
+		return opaque;
+	}
 }
