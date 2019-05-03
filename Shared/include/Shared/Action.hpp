@@ -123,7 +123,7 @@ protected:
 
 	inline T m_Get() const
 	{
-		if(Get.IsBound())
+		if (Get.IsBound())
 			return const_cast<Property*>(this)->Get.Call();
 		else
 			return m_value;
@@ -131,9 +131,10 @@ protected:
 
 	inline void m_Set(const T& val)
 	{
-		if(Set.IsBound())
+		if (Set.IsBound())
 			Set.Call(val);
 		else
 			m_value = val;
 
+	};
 };

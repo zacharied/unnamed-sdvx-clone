@@ -1,5 +1,5 @@
 #pragma once
-
+#include "stdafx.h"
 #include <Shared/VectorMath.hpp>
 #include <Shared/Log.hpp>
 #include <Graphics/Text.hpp>

@@ -121,7 +121,7 @@ namespace Graphics
 		}
 
 		Vector2i size = image.GetSize();
-		void* bits = image.GetBits();
+		void* bits = (void*)image.GetBits();
 		SDL_Surface* surf = SDL_CreateRGBSurfaceFrom(bits, size.x, size.y, 32, size.x * 4,
 					0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
 		if(surf)

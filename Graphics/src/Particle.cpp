@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include <Graphics/Particle.hpp>
 #include <Graphics/ParticleEmitter.hpp>
 

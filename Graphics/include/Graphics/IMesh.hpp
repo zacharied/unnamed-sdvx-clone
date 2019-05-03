@@ -4,6 +4,8 @@
 #include <Shared/Rect.hpp>
 #include "VertexFormat.hpp"
 
+using Shared::Rect;
+using Shared::Rect3D;
 namespace Graphics
 {
 	/* The type that tells how a mesh is drawn */

@@ -1,11 +1,11 @@
 #pragma once
 #include <Graphics/Keys.hpp>
+#include "IImage.hpp"
 #include "../../../Main/Gamepad/Gamepad.hpp"
 #ifdef _WIN32
 #include <SDL.h>
 #else
 #include <SDL2/SDL.h>
-#include "IImage.hpp"
 
 #endif
 

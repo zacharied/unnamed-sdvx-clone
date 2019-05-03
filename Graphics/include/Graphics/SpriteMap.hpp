@@ -4,6 +4,8 @@
 
 namespace Graphics
 {
+	using Shared::Recti;
+
 	struct Category
 	{
 		uint32 width = 0;

@@ -14,7 +14,6 @@ namespace Graphics
 	using Shared::Margin;
 	using Shared::Recti;
 
-	struct CachedText
 	auto Font::Create(const String& assetPath) -> optional<unique_ptr<Font>>
 	{
 		struct EnableMaker : public Font { using Font::Font; };

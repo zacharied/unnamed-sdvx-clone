@@ -143,7 +143,7 @@ namespace Graphics
 				for(uint32 i = 0; i < 3; i++)
 				{
 					if(m_shaders[i])
-						AssignShader(ShaderType(i), m_shaders[i]);
+						AssignShader(std::move(m_shaders[i]));
 				}
 			}
 #endif
@@ -264,8 +264,8 @@ namespace Graphics
 		mat->AssignShader(std::move(*vShader));
 		mat->AssignShader(std::move(*fShader));
 #if _DEBUG
-		impl->m_debugNames[(size_t)ShaderType::Vertex] = vsPath;
-		impl->m_debugNames[(size_t)ShaderType::Fragment] = fsPath;
+		mat->m_debugNames[(size_t)ShaderType::Vertex] = vsPath;
+		mat->m_debugNames[(size_t)ShaderType::Fragment] = fsPath;
 #endif
 
 		if(!mat->m_shaders[(size_t)ShaderType::Vertex])

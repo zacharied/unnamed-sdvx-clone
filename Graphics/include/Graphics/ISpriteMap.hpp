@@ -13,6 +13,7 @@ namespace Graphics
 
 		!! The packing is not optimal as the images are stacked for bottom to top and placed in columns based on their width
 	*/
+	using Shared::Recti;
 	class ISpriteMap
 	{
 	public:
