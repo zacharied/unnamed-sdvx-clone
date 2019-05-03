@@ -25,7 +25,5 @@ namespace Graphics
 			Monospace = 0x1,
 		};
 
-		// Renders the input string into a drawable text object
-		virtual unique_ptr<IText> CreateText(const WString& str, uint32 nFontSize, TextOptions options = TextOptions::None) = 0;
 	};
 }

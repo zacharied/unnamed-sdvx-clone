@@ -33,7 +33,7 @@ namespace Graphics
 
 	struct CachedText
 	{
-		unique_ptr<Text> text;
+		Text* text;
 		float lastUsage;
 	};
 
@@ -52,7 +52,7 @@ namespace Graphics
 	public:
 		void Update();
 		optional<Text*> GetText(const WString& key);
-		void AddText(const WString& key, unique_ptr<Text> obj);
+		void AddText(const WString& key, Text* obj);
 
 	private:
 		Timer timer;

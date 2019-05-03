@@ -16,7 +16,7 @@ namespace Graphics
 		~Font() override;
 
 		static auto Create(const String& assetPath) -> optional<unique_ptr<Font>>;
-		unique_ptr<IText> CreateText(const WString& str, uint32 nFontSize, TextOptions options = TextOptions::None) override;
+		Text* CreateText(const WString& str, uint32 nFontSize, TextOptions options = TextOptions::None);
 	private:
 		FT_Face m_face;
 		Buffer m_data;

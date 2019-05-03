@@ -37,6 +37,7 @@ namespace Graphics
 		assert(res); // TODO: (factory)
 		auto tex = Texture::Create();
 		assert(tex); // TODO: (factory)
+		spriteMap = std::move(*res);
 		textureMap = std::move(*tex);
 		lineHeight = (float) face->size->metrics.height / 64.0f;
 	}
@@ -125,17 +126,17 @@ namespace Graphics
 		if (it != end())
 		{
 			it->second.lastUsage = timer.SecondsAsFloat();
-			return it->second.text.get();
+			return it->second.text;
 		}
 		return {};
 	}
 
-	void TextCache::AddText(const WString& key, unique_ptr<Text> obj)
+	void TextCache::AddText(const WString& key, Text* obj)
 	{
 		Update();
 		auto it = find(key);
 		if(it == end())
-			insert(std::make_pair(key, CachedText{std::move(obj), timer.SecondsAsFloat()}));
+			insert(std::make_pair(key, CachedText{obj, timer.SecondsAsFloat()}));
 	}
 
 	FontLibrary& FontLibrary::instance()
