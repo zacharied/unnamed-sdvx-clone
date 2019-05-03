@@ -1,5 +1,8 @@
 #pragma once
 #include <type_traits>
+#include <Shared/Vector.hpp>
+#include <Shared/Types.hpp>
+#include <Shared/VectorMath.hpp>
 
 namespace Graphics
 {

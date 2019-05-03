@@ -5,47 +5,44 @@ using Utility::Cast;
 
 namespace Graphics
 {
-	RenderQueue::RenderQueue(OpenGL* ogl, const RenderState& rs)
+	RenderQueue::RenderQueue(const RenderState& rs)
 	{
-		m_ogl = ogl;
 		m_renderState = rs;
 	}
-	RenderQueue::RenderQueue(RenderQueue&& other)
+
+	RenderQueue::RenderQueue(RenderQueue&& other) noexcept
 	{
-		m_ogl = other.m_ogl;
-		other.m_ogl = nullptr;
 		m_orderedCommands = move(other.m_orderedCommands);
 		m_renderState = other.m_renderState;
 	}
-	RenderQueue& RenderQueue::operator=(RenderQueue&& other)
+
+	RenderQueue& RenderQueue::operator=(const RenderQueue& other)
 	{
-		Clear();
-		m_ogl = other.m_ogl;
-		other.m_ogl = nullptr;
+		m_renderState = other.m_renderState;
+		return *this;
+	}
+
+	RenderQueue& RenderQueue::operator=(RenderQueue&& other) noexcept
+	{
 		m_orderedCommands = move(other.m_orderedCommands);
 		m_renderState = other.m_renderState;
 		return *this;
 	}
-	RenderQueue::~RenderQueue()
-	{
-		Clear();
-	}
+
 	void RenderQueue::Process(bool clearQueue)
 	{
-		assert(m_ogl);
-
 		bool scissorEnabled = false;
 		bool blendEnabled = false;
-		MaterialBlendMode activeBlendMode = (MaterialBlendMode)-1;
+		auto activeBlendMode = (MaterialBlendMode)-1;
 
-		Set<Material> initializedShaders;
-		Mesh currentMesh;
-		Material currentMaterial;
+		Set<IMaterial*> initializedShaders;
+		IMesh* currentMesh = nullptr;
+		IMaterial* currentMaterial = nullptr;
 
 		// Create a new list of items
-		for(RenderQueueItem* item : m_orderedCommands)
+		for(auto& item : m_orderedCommands)
 		{
-			auto SetupMaterial = [&](Material& mat, MaterialParameterSet& params)
+			auto SetupMaterial = [&](IMaterial* mat, MaterialParameterSet& params)
 			{
 				// Only bind params if material is already bound to context
 				if(currentMaterial == mat)
@@ -102,7 +99,7 @@ namespace Graphics
 			};
 
 			// Draw mesh helper
-			auto DrawOrRedrawMesh = [&](Mesh& mesh)
+			auto DrawOrRedrawMesh = [&](IMesh* mesh)
 			{
 				if(currentMesh == mesh)
 					mesh->Redraw();
@@ -113,9 +110,8 @@ namespace Graphics
 				}
 			};
 
-			if(Cast<SimpleDrawCall>(item))
+			if(auto sdc = dynamic_cast<SimpleDrawCall*>(item.get()); sdc)
 			{
-				SimpleDrawCall* sdc = (SimpleDrawCall*)item;
 				m_renderState.worldTransform = sdc->worldTransform;
 				SetupMaterial(sdc->mat, sdc->params);
 
@@ -144,7 +140,7 @@ namespace Graphics
 
 				DrawOrRedrawMesh(sdc->mesh);
 			}
-			else if(Cast<PointDrawCall>(item))
+			else if(auto pdc = dynamic_cast<PointDrawCall*>(item.get()); pdc)
 			{
 				if(scissorEnabled)
 				{
@@ -153,18 +149,14 @@ namespace Graphics
 					scissorEnabled = false;
 				}
 
-				PointDrawCall* pdc = (PointDrawCall*)item;
 				m_renderState.worldTransform = Transform();
 				SetupMaterial(pdc->mat, pdc->params);
 				PrimitiveType pt = pdc->mesh->GetPrimitiveType();
+
 				if(pt >= PrimitiveType::LineList && pt <= PrimitiveType::LineStrip)
-				{
 					glLineWidth(pdc->size);
-				}
 				else
-				{
 					glPointSize(pdc->size);
-				}
 				
 				DrawOrRedrawMesh(pdc->mesh);
 			}
@@ -175,55 +167,45 @@ namespace Graphics
 		glDisable(GL_SCISSOR_TEST);
 
 		if(clearQueue)
-		{
-			Clear();
-		}
+			m_orderedCommands.clear();
 	}
 
-	void RenderQueue::Clear()
+	void RenderQueue::Draw(const Transform& worldTransform, IMesh* m, IMaterial* mat, const MaterialParameterSet& params)
 	{
-		// Cleanup the list of items
-		for(RenderQueueItem* item : m_orderedCommands)
-		{
-			delete item;
-		}
-		m_orderedCommands.clear();
-	}
-
-	void RenderQueue::Draw(Transform worldTransform, Mesh m, Material mat, const MaterialParameterSet& params)
-	{
-		SimpleDrawCall* sdc = new SimpleDrawCall();
+		auto sdc = make_unique<SimpleDrawCall>();
 		sdc->mat = mat;
 		sdc->mesh = m;
 		sdc->params = params;
 		sdc->worldTransform = worldTransform;
-		m_orderedCommands.push_back(sdc);
+		m_orderedCommands.push_back(std::move(sdc));
 	}
-	void RenderQueue::Draw(Transform worldTransform, Ref<class TextRes> text, Material mat, const MaterialParameterSet& params)
+
+	void RenderQueue::Draw(const Transform& worldTransform, IText* text, IMaterial* mat, const MaterialParameterSet& params)
 	{
-		SimpleDrawCall* sdc = new SimpleDrawCall();
+		auto sdc = make_unique<SimpleDrawCall>();
 		sdc->mat = mat;
 		sdc->mesh = text->GetMesh();
 		sdc->params = params;
 		// Set Font texture map
 		sdc->params.SetParameter("mainTex", text->GetTexture());
 		sdc->worldTransform = worldTransform;
-		m_orderedCommands.push_back(sdc);
+		m_orderedCommands.push_back(std::move(sdc));
 	}
 
-	void RenderQueue::DrawScissored(Rect scissor, Transform worldTransform, Mesh m, Material mat, const MaterialParameterSet& params /*= MaterialParameterSet()*/)
+	void RenderQueue::DrawScissored(Rect scissor, const Transform& worldTransform, IMesh* m, IMaterial* mat, const MaterialParameterSet& params)
 	{
-		SimpleDrawCall* sdc = new SimpleDrawCall();
+		auto sdc = make_unique<SimpleDrawCall>();
 		sdc->mat = mat;
 		sdc->mesh = m;
 		sdc->params = params;
 		sdc->worldTransform = worldTransform;
 		sdc->scissorRect = scissor;
-		m_orderedCommands.push_back(sdc);
+		m_orderedCommands.push_back(std::move(sdc));
 	}
-	void RenderQueue::DrawScissored(Rect scissor, Transform worldTransform, Ref<class TextRes> text, Material mat, const MaterialParameterSet& params /*= MaterialParameterSet()*/)
+
+	void RenderQueue::DrawScissored(Rect scissor, const Transform& worldTransform, IText* text, IMaterial* mat, const MaterialParameterSet& params)
 	{
-		SimpleDrawCall* sdc = new SimpleDrawCall();
+		auto sdc = make_unique<SimpleDrawCall>();
 		sdc->mat = mat;
 		sdc->mesh = text->GetMesh();
 		sdc->params = params;
@@ -231,23 +213,16 @@ namespace Graphics
 		sdc->params.SetParameter("mainTex", text->GetTexture());
 		sdc->worldTransform = worldTransform;
 		sdc->scissorRect = scissor;
-		m_orderedCommands.push_back(sdc);
+		m_orderedCommands.push_back(std::move(sdc));
 	}
 
-	void RenderQueue::DrawPoints(Mesh m, Material mat, const MaterialParameterSet& params, float pointSize)
+	void RenderQueue::DrawPoints(IMesh* m, IMaterial* mat, const MaterialParameterSet& params, float pointSize)
 	{
-		PointDrawCall* pdc = new PointDrawCall();
+		auto pdc = make_unique<PointDrawCall>();
 		pdc->mat = mat;
 		pdc->mesh = m;
 		pdc->params = params;
 		pdc->size = pointSize;
-		m_orderedCommands.push_back(pdc);
+		m_orderedCommands.push_back(std::move(pdc));
 	}
-
-	// Initializes the simple draw call structure
-	SimpleDrawCall::SimpleDrawCall()
-		: scissorRect(Vector2(), Vector2(-1))
-	{
-	}
-
 }

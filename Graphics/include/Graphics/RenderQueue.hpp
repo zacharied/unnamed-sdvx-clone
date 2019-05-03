@@ -1,8 +1,8 @@
 #pragma once
-#include <Graphics/Mesh.hpp>
-#include <Graphics/Texture.hpp>
-#include <Graphics/Font.hpp>
-#include <Graphics/Material.hpp>
+#include <Graphics/IMesh.hpp>
+#include <Graphics/IMaterial.hpp>
+#include <Graphics/ITexture.hpp>
+#include <Graphics/IFont.hpp>
 
 namespace Graphics
 {
@@ -21,11 +21,14 @@ namespace Graphics
 	class SimpleDrawCall : public RenderQueueItem
 	{
 	public:
-		SimpleDrawCall();
+		SimpleDrawCall()
+				: scissorRect(Vector2(), Vector2(-1))
+		{}
+
 		// The mesh to draw
-		Mesh mesh;
+		IMesh* mesh;
 		// Material to use
-		Material mat;
+		IMaterial* mat;
 		MaterialParameterSet params;
 		// The world transform
 		Transform worldTransform; 
@@ -38,8 +41,8 @@ namespace Graphics
 	{
 	public:
 		// List of points/lines
-		Mesh mesh;
-		Material mat;
+		IMesh* mesh;
+		IMaterial* mat;
 		MaterialParameterSet params;
 		float size;
 	};
@@ -54,25 +57,25 @@ namespace Graphics
 	{
 	public:
 		RenderQueue() = default;
-		RenderQueue(OpenGL* ogl, const RenderState& rs);
-		RenderQueue(RenderQueue&& other);
-		RenderQueue& operator=(RenderQueue&& other);
-		~RenderQueue();
+		explicit RenderQueue(const RenderState& rs);
+		RenderQueue(RenderQueue&& other) noexcept;
+		RenderQueue& operator=(const RenderQueue& other);
+		RenderQueue& operator=(RenderQueue&& other) noexcept;
+		~RenderQueue() = default;
+
 		// Processes all render commands
 		void Process(bool clearQueue = true);
 		// Clears all the render commands in the queue
-		void Clear();
-		void Draw(Transform worldTransform, Mesh m, Material mat, const MaterialParameterSet& params = MaterialParameterSet());
-		void Draw(Transform worldTransform, Ref<class TextRes> text, Material mat, const MaterialParameterSet& params = MaterialParameterSet());
-		void DrawScissored(Rect scissor, Transform worldTransform, Mesh m, Material mat, const MaterialParameterSet& params = MaterialParameterSet());
-		void DrawScissored(Rect scissor, Transform worldTransform, Ref<class TextRes> text, Material mat, const MaterialParameterSet& params = MaterialParameterSet());
+		void Draw(const Transform& worldTransform, IMesh* m, IMaterial* mat, const MaterialParameterSet& params = MaterialParameterSet());
+		void Draw(const Transform& worldTransform, IText* text, IMaterial* mat, const MaterialParameterSet& params = MaterialParameterSet());
+		void DrawScissored(Rect scissor, const Transform& worldTransform, IMesh* m, IMaterial* mat, const MaterialParameterSet& params = MaterialParameterSet());
+		void DrawScissored(Rect scissor, const Transform& worldTransform, IText* text, IMaterial* mat, const MaterialParameterSet& params = MaterialParameterSet());
 
 		// Draw for lines/points with point size parameter
-		void DrawPoints(Mesh m, Material mat, const MaterialParameterSet& params, float pointSize);
+		void DrawPoints(IMesh* m, IMaterial* mat, const MaterialParameterSet& params, float pointSize);
 
 	private:
 		RenderState m_renderState;
-		Vector<RenderQueueItem*> m_orderedCommands;
-		class OpenGL* m_ogl = nullptr;
+		Vector<unique_ptr<RenderQueueItem>> m_orderedCommands;
 	};
 }

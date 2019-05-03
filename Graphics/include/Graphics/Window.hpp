@@ -1,10 +1,12 @@
 #pragma once
 #include <Graphics/Keys.hpp>
-#include <Graphics/Gamepad.hpp>
+#include "../../../Main/Gamepad/Gamepad.hpp"
 #ifdef _WIN32
 #include <SDL.h>
 #else
 #include <SDL2/SDL.h>
+#include "IImage.hpp"
+
 #endif
 
 namespace Graphics
@@ -23,28 +25,22 @@ namespace Graphics
 		int32 selectionLength;
 	};
 
-	/*
-		Simple window class that manages window messages, window style and input
-		Renamed from Window to DesktopWindow to avoid conflicts with libX11 on Linux
-	*/
+	// Simple window class that manages window messages, window style
 	class Window : Unique
 	{
 	public:
-		Window(Vector2i size = Vector2i(800, 600), uint8 samplecount = 0);
+		explicit Window(Vector2i size = Vector2i{800, 600}, uint8 samplecount = 0);
 		~Window();
-		// Show the window
+
 		void Show();
-		// Hide the window
 		void Hide();
-		// Call every frame to update the window message loop
-		// returns false if the window received a close message
-		bool Update();
+		void Close();
+
 		// On windows: returns the HWND
 		void* Handle();
+
 		// Set the window title (caption)
 		void SetCaption(const WString& cap);
-		// Closes the window
-		void Close();
 
 		Vector2i GetMousePos();
 		void SetMousePos(const Vector2i& pos);
@@ -52,7 +48,7 @@ namespace Graphics
 		bool GetRelativeMouseMode();
 
 		// Sets cursor to use
-		void SetCursor(Ref<class ImageRes> image, Vector2i hotspot = Vector2i(0,0));
+		void SetCursor(const IImage& image, Vector2i hotspot = Vector2i(0,0));
 		void SetCursorVisible(bool visible);
 
 		// Switches between borderless and windowed
@@ -92,17 +88,10 @@ namespace Graphics
 
 		// Show a simple message box
 		// level 0 = error, 1 = warning, 2 = info
-		void ShowMessageBox(String title, String message, int severity);
+		void ShowMessageBox(const String& title, const String& message, int severity);
 
 		// Get the text currently in the clipboard
 		WString GetClipboard() const;
-
-		// The number of available gamepad devices
-		int32 GetNumGamepads() const;
-		// List of gamepad device names
-		Vector<String> GetGamepadDeviceNames() const;
-		// Open a gamepad within the range of the number of gamepads
-		Ref<Gamepad> OpenGamepad(int32 deviceIndex);
 
 		Delegate<int32> OnKeyPressed;
 		Delegate<int32> OnKeyReleased;
@@ -121,6 +110,27 @@ namespace Graphics
 		Delegate<const Vector2i&> OnResized;
 
 	private:
-		class Window_Impl* m_impl;
+		SDL_Window* m_window;
+		SDL_Cursor* currentCursor = nullptr;
+
+		// Window Input State
+		Map<SDL_Keycode, uint8> m_keyStates;
+		ModifierKeys m_modKeys = ModifierKeys::None;
+
+		// Text input / IME stuff
+		TextComposition m_textComposition;
+
+		// Update loop
+		Timer t;
+
+		// Various window state
+		bool m_active = true;
+		bool m_closed = false;
+		bool m_fullscreen = false;
+		uint32 m_style;
+		Vector2i m_clntSize;
+		WString m_caption;
+
+		void HandleKeyEvent(SDL_Keycode code, uint8 newState, int32 repeat);
 	};
 }

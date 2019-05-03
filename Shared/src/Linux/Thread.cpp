@@ -1,10 +1,9 @@
-#pragma once
 #include "stdafx.h"
 #include "Thread.hpp"
 
 size_t Thread::SetAffinityMask(size_t affinityMask)
 {
-	pthread_t h = (pthread_t)native_handle();
+	auto h = (pthread_t)native_handle();
 	cpu_set_t cpuset;
 	CPU_ZERO(&cpuset);
 	for (uint32 j = 0; j < 8; j++)
@@ -19,7 +18,7 @@ size_t Thread::SetAffinityMask(size_t affinityMask)
 
 size_t Thread::SetCurrentThreadAffinityMask(size_t affinityMask)
 {
-	pthread_t h = (pthread_t)pthread_self();
+	auto h = (pthread_t)pthread_self();
 	cpu_set_t cpuset;
 	CPU_ZERO(&cpuset);
 	for (uint32 j = 0; j < 8; j++)

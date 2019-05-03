@@ -1,5 +1,5 @@
 #pragma once
-#include "Gamepad.hpp"
+#include "../../Main/Gamepad/Gamepad.hpp"
 
 #ifdef _WIN32
 #include "SDL_joystick.h"

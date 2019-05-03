@@ -1,5 +1,6 @@
 #pragma once
-#include "Shared/Bindable.hpp"
+#include "Bindable.hpp"
+#include "Unique.hpp"
 
 /*
 	Action is an objects that holds the neccesary information to call a single static function / member function / lambda
@@ -9,57 +10,64 @@ class Action : public Unique
 {
 public:
 	Action() = default;
-	Action(R(*staticFunction)(A...))
-	{
-		m_binding = new StaticBinding<R, A...>(staticFunction);
-	}
+	explicit Action(R(*staticFunction)(A...));
+
 	template<typename L>
-	Action(L&& lambda)
+	explicit Action(L&& lambda)
 	{
 		m_binding = new LambdaBinding<L, R, A...>(std::forward<L>(lambda));
 	}
-	Action(Action&& other)
+
+	Action(Action&& other) noexcept
 	{
 		m_binding = other.m_binding;
 		other.m_binding = nullptr;
 	}
-	Action& operator=(Action&& other)
+
+	Action& operator=(Action&& other) noexcept
 	{
 		Clear();
 		m_binding = other.m_binding;
 		other.m_binding = nullptr;
 		return *this;
 	}
+
 	void Bind(R(*staticFunction)(A...))
 	{
 		Clear();
 		m_binding = new StaticBinding<R, A...>(staticFunction);
 	}
+
 	template<typename T>
 	void Bind(T* obj, R(T::*memberFunc)(A...))
 	{
 		Clear();
 		m_binding = new ObjectBinding<T, R, A...>(obj, memberFunc);
 	}
+
 	template<typename L>
 	void BindLambda(L&& lambda)
 	{
 		Clear();
 		m_binding = new LambdaBinding<L, R, A...>(std::forward<L>(lambda));
 	}
+
 	~Action()
 	{
 		Clear();
 	}
+
 	R Call(A... args)
 	{
 		assert(IsBound());
 		return m_binding->Call(args...);
 	}
+
 	bool IsBound() const
 	{
 		return m_binding != nullptr;
 	}
+
 	void Clear()
 	{
 		if(m_binding)
@@ -71,6 +79,12 @@ private:
 	IFunctionBinding<R, A...>* m_binding = nullptr;
 };
 
+template<typename R, typename... A>
+Action<R, A...>::Action(R (* staticFunction)(A...))
+{
+	m_binding = new StaticBinding<R, A...>(staticFunction);
+}
+
 /* 
 	Bindable property 
 	This field either acts just as a normal variable or acts a a property using Get/Set methods to interface with the underlying value
@@ -80,20 +94,20 @@ class Property
 {
 public:
 	Property() = default;
-	Property(T val)
+	explicit Property(T val)
 		: m_value(val)
-	{
-	}
+	{}
+
 	Property(Action<T> get, Action<void, T> set)
 		: Get(move(get)), Set(move(set))
-	{
-	}
+	{}
 
 	// Get
-	inline operator T() const
+	inline explicit operator T() const
 	{
 		return m_Get();
 	}
+
 	// Set
 	inline Property& operator=(const T& other)
 	{
@@ -103,7 +117,10 @@ public:
 
 	Action<T> Get;
 	Action<void, T> Set;
+
 protected:
+	T m_value;
+
 	inline T m_Get() const
 	{
 		if(Get.IsBound())
@@ -111,12 +128,12 @@ protected:
 		else
 			return m_value;
 	}
+
 	inline void m_Set(const T& val)
 	{
 		if(Set.IsBound())
 			Set.Call(val);
 		else
 			m_value = val;
-	}
-	T m_value;
+
 };
