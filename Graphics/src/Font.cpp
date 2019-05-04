@@ -24,7 +24,7 @@ namespace Graphics
 		return std::move(font);
 	}
 
-	Text* Font::CreateText(const WString & str, uint32 nFontSize, TextOptions options)
+	shared_ptr<IText> Font::CreateText(const WString & str, uint32 nFontSize, TextOptions options)
 	{
 		FontSize* size = GetSize(nFontSize);
 
@@ -39,7 +39,7 @@ namespace Graphics
 			Vector2 tex;
 		};
 
-		Text* ret = new Text();
+		auto ret = make_shared<Text>();
 		ret->mesh = Mesh::Create().value();
 
 		float monospaceWidth = size->GetCharInfo(L'_').advance;

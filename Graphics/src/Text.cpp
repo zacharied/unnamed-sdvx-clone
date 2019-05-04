@@ -120,7 +120,7 @@ namespace Graphics
 		}
 	}
 
-	optional<Text*> TextCache::GetText(const WString& key)
+	optional<shared_ptr<IText>> TextCache::GetText(const WString& key)
 	{
 		auto it = find(key);
 		if (it != end())
@@ -131,7 +131,7 @@ namespace Graphics
 		return {};
 	}
 
-	void TextCache::AddText(const WString& key, Text* obj)
+	void TextCache::AddText(const WString& key, shared_ptr<IText> obj)
 	{
 		Update();
 		auto it = find(key);

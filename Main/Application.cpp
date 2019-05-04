@@ -1121,7 +1121,7 @@ int Application::FastText(String inputText, float x, float y, int size, int alig
 
 	MaterialParameterSet params;
 	params.SetParameter("color", Vector4(1.f, 1.f, 1.f, 1.f));
-	g_application->GetRenderQueueBase()->Draw(textTransform, te, g_application->GetFontMaterial().get(), params);
+	g_application->GetRenderQueueBase()->Draw(textTransform, te.get(), g_application->GetFontMaterial().get(), params);
 	return 0;
 }
 
