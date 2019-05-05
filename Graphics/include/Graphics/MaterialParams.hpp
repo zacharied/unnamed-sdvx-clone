@@ -9,6 +9,7 @@ namespace Graphics
 	{
 		CopyableBuffer parameterData;
 		uint32 parameterType;
+		shared_ptr<ITexture> textureBidning;
 
 		template<typename T>
 		static MaterialParameter Create(const T& obj, uint32 type)
@@ -57,7 +58,7 @@ namespace Graphics
 		void SetParameter(const String& name, const Vector3& vec3);
 		void SetParameter(const String& name, const Vector2i& vec2);
 		void SetParameter(const String& name, const Transform& tf);
-		void SetParameter(const String& name, ITexture* tex);
+		void SetParameter(const String& name, shared_ptr<ITexture> tex);
 	};
 
 	enum class MaterialBlendMode

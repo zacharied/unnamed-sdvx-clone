@@ -49,11 +49,6 @@ public:
 	// Returns a handle to a mouse lock, release it to unlock the mouse
 	MouseLockHandle LockMouse();
 
-	// Event handlers
-	virtual void OnKeyPressed(int32 key);
-	virtual void OnKeyReleased(int32 key);
-	virtual void OnMouseMotion(int32 x, int32 y);
-
 	// Request laser input state
 	float GetInputLaserDir(uint32 laserIdx);
 
@@ -61,15 +56,38 @@ public:
 	Delegate<Button> OnButtonPressed;
 	Delegate<Button> OnButtonReleased;
 
+	Delegate<int32> OnKeyPressed;
+	Delegate<int32> OnKeyReleased;
+	Delegate<MouseButton> OnMousePressed;
+	Delegate<MouseButton> OnMouseReleased;
+	Delegate<int32, int32> OnMouseMotion;
+	Delegate<> OnQuit;
+	Delegate<SDL_Event> OnAnyEvent;
+	// Mouse scroll wheel 
+	//	Positive for scroll down
+	//	Negative for scroll up
+	Delegate<int32> OnMouseScroll;
+	// Called for the initial an repeating presses of a key
+	Delegate<int32> OnKeyRepeat;
+	Delegate<const WString&> OnTextInput;
+	Delegate<const TextComposition&> OnTextComposition;
+	Delegate<const Vector2i&> OnResized;
+
 private:
-	Map<int32, shared_ptr<class Gamepad>> m_gamepads;
-	Map<SDL_JoystickID, Gamepad*> m_joystickMap;
+	Map<int32, shared_ptr<class Gamepad_Impl>> m_gamepads;
+	Map<SDL_JoystickID, Gamepad_Impl*> m_joystickMap;
 	void m_InitKeyboardMapping();
 	void m_InitControllerMapping();
 	void m_OnButtonInput(Button b, bool pressed);
 
 	void m_OnGamepadButtonPressed(uint8 button);
 	void m_OnGamepadButtonReleased(uint8 button);
+	void m_HandleKeyEvent(SDL_Keycode code, uint8 newState, int32 repeat);
+	void m_SdlPollEvents();
+	// Event handlers
+	void m_OnKeyPressed(int32 key);
+	void m_OnKeyReleased(int32 key);
+	void m_OnMouseMotion(int32 x, int32 y);
 
 	int32 m_mouseLockIndex = 0;
 	Vector<MouseLockHandle> m_mouseLocks;
@@ -82,7 +100,8 @@ private:
 	float m_rawKeyLaserStates[2] = { 0.0f };
 	float m_prevLaserStates[2] = { 0.0f };
 	float m_absoluteLaserStates[2] = { 0.0f };
-
+	ModifierKeys m_modKeys;
+	Map<SDL_Keycode, uint8> m_keyStates;
 	// Keyboard bindings
 	Multimap<int32, Button> m_buttonMap;
 	float m_keySensitivity;
@@ -101,6 +120,7 @@ private:
 	float m_controllerDeadzone;
 
 	shared_ptr<Gamepad> m_gamepad;
+	TextComposition m_textComposition;
 
 	Graphics::Window* m_window = nullptr;
 };

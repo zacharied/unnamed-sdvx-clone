@@ -18,8 +18,8 @@ namespace Graphics
 	public:
 		~Text() override = default;
 
-		ITexture* GetTexture() override;
-		IMesh* GetMesh() override;
+		shared_ptr<ITexture> GetTexture() override;
+		shared_ptr<IMesh> GetMesh() override;
 		void Draw() override;
 		Vector2 GetSize() override;
 
@@ -27,13 +27,13 @@ namespace Graphics
 		friend class Font;
 
 		Vector2 size;
-		unique_ptr<IMesh> mesh;
+		shared_ptr<IMesh> mesh;
 		struct FontSize* fontSize;
 	};
 
 	struct CachedText
 	{
-		shared_ptr<IText> text;
+		shared_ptr<Text> text;
 		float lastUsage;
 	};
 
@@ -51,8 +51,8 @@ namespace Graphics
 	{
 	public:
 		void Update();
-		optional<shared_ptr<IText>> GetText(const WString& key);
-		void AddText(const WString& key, shared_ptr<IText> obj);
+		optional<shared_ptr<Text>> GetText(const WString& key);
+		void AddText(const WString& key, shared_ptr<Text> obj);
 
 	private:
 		Timer timer;
@@ -61,7 +61,7 @@ namespace Graphics
 	struct FontSize
 	{
 		unique_ptr<ISpriteMap> spriteMap;
-		unique_ptr<ITexture> textureMap;
+		shared_ptr<ITexture> textureMap;
 		FT_Face face;
 		Vector<CharInfo> infos;
 		Map<wchar_t, uint32> infoByChar;
@@ -73,7 +73,7 @@ namespace Graphics
 		~FontSize() = default;
 
 		const CharInfo& GetCharInfo(wchar_t t);
-		ITexture* GetTextureMap();
+		shared_ptr<ITexture> GetTextureMap();
 
 	private:
 		const CharInfo& AddCharInfo(wchar_t t);

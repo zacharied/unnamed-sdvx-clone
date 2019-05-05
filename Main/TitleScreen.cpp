@@ -96,7 +96,7 @@ public:
 		m_luaBinds->AddFunction("Start", this, &TitleScreen_Impl::lStart);
 		m_luaBinds->Push();
 		lua_settop(m_lua, 0);
-		g_gameWindow->OnMousePressed.Add(this, &TitleScreen_Impl::MousePressed);
+		g_input.OnMousePressed.Add(this, &TitleScreen_Impl::MousePressed);
 		return true;
 	}
 	~TitleScreen_Impl()

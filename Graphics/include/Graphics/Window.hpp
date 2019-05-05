@@ -88,22 +88,6 @@ namespace Graphics
 		// Get the text currently in the clipboard
 		WString GetClipboard() const;
 
-		Delegate<int32> OnKeyPressed;
-		Delegate<int32> OnKeyReleased;
-		Delegate<MouseButton> OnMousePressed;
-		Delegate<MouseButton> OnMouseReleased;
-		Delegate<int32, int32> OnMouseMotion;
-		Delegate<SDL_Event> OnAnyEvent;
-		// Mouse scroll wheel 
-		//	Positive for scroll down
-		//	Negative for scroll up
-		Delegate<int32> OnMouseScroll;
-		// Called for the initial an repeating presses of a key
-		Delegate<int32> OnKeyRepeat;
-		Delegate<const WString&> OnTextInput;
-		Delegate<const TextComposition&> OnTextComposition;
-		Delegate<const Vector2i&> OnResized;
-
 	private:
 		SDL_Window* m_window;
 		SDL_Cursor* currentCursor = nullptr;

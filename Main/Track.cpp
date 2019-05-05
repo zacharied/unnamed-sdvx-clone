@@ -305,7 +305,7 @@ void Track::DrawLaserBase(RenderQueue& rq, class BeatmapPlayback& playback, cons
 			shared_ptr<Mesh> laserMesh = m_laserTrackBuilder[laser->index]->GenerateTrackMesh(playback, laser);
 
 			MaterialParameterSet laserParams;
-			laserParams.SetParameter("mainTex", laserTextures[laser->index].get());
+			laserParams.SetParameter("mainTex", laserTextures[laser->index]);
 
 			// Get the length of this laser segment
 			Transform laserTransform = trackOrigin;
@@ -313,7 +313,7 @@ void Track::DrawLaserBase(RenderQueue& rq, class BeatmapPlayback& playback, cons
 
 			if (laserMesh)
 			{
-				rq.Draw(laserTransform, laserMesh.get(), blackLaserMaterial.get(), laserParams);
+				rq.Draw(laserTransform, laserMesh, blackLaserMaterial, laserParams);
 			}
 		}
 	}
@@ -324,14 +324,14 @@ void Track::DrawBase(class RenderQueue& rq)
 	// Base
 	MaterialParameterSet params;
 	Transform transform = trackOrigin;
-	params.SetParameter("mainTex", trackTexture.get());
+	params.SetParameter("mainTex", trackTexture);
 	params.SetParameter("lCol", laserColors[0]);
 	params.SetParameter("rCol", laserColors[1]);
 	params.SetParameter("hidden", m_trackHide);
-	rq.Draw(transform, trackMesh.get(), trackMaterial.get(), params);
+	rq.Draw(transform, trackMesh, trackMaterial, params);
 
 	// Draw the main beat ticks on the track
-	params.SetParameter("mainTex", trackTickTexture.get());
+	params.SetParameter("mainTex", trackTickTexture);
 	params.SetParameter("hasSample", false);
 	for(float f : m_barTicks)
 	{
@@ -339,7 +339,7 @@ void Track::DrawBase(class RenderQueue& rq)
 		Vector3 tickPosition = Vector3(0.0f, trackLength * fLocal - trackTickLength * 0.5f, 0.01f);
 		Transform tickTransform = trackOrigin;
 		tickTransform *= Transform::Translation(tickPosition);
-		rq.Draw(tickTransform, trackTickMesh.get(), buttonMaterial.get(), params);
+		rq.Draw(tickTransform, trackTickMesh, buttonMaterial, params);
 	}
 }
 void Track::DrawObjectState(RenderQueue& rq, class BeatmapPlayback& playback, ObjectState* obj, bool active)
@@ -367,7 +367,7 @@ void Track::DrawObjectState(RenderQueue& rq, class BeatmapPlayback& playback, Ob
 			xposition = buttonTrackWidth * -0.5f + width * mobj->button.index;
 			length = buttonLength;
 			params.SetParameter("hasSample", mobj->button.hasSample);
-			params.SetParameter("mainTex", isHold ? buttonHoldTexture.get() : buttonTexture.get());
+			params.SetParameter("mainTex", isHold ? buttonHoldTexture : buttonTexture);
 			mesh = buttonMesh;
 		}
 		else // FX Button
@@ -376,7 +376,7 @@ void Track::DrawObjectState(RenderQueue& rq, class BeatmapPlayback& playback, Ob
 			xposition = buttonTrackWidth * -0.5f + fxbuttonWidth *(mobj->button.index - 4);
 			length = fxbuttonLength;
 			params.SetParameter("hasSample", mobj->button.hasSample);
-			params.SetParameter("mainTex", isHold ? fxbuttonHoldTexture.get() : fxbuttonTexture.get());
+			params.SetParameter("mainTex", isHold ? fxbuttonHoldTexture : fxbuttonTexture);
 			mesh = fxbuttonMesh;
 		}
 
@@ -401,7 +401,7 @@ void Track::DrawObjectState(RenderQueue& rq, class BeatmapPlayback& playback, Ob
 			scale = (playback.DurationToViewDistanceAtTime(mobj->time, mobj->hold.duration) / viewRange) / length  * trackLength;
 		}
 		buttonTransform *= Transform::Scale({ 1.0f, scale, 1.0f });
-		rq.Draw(buttonTransform, mesh.get(), mat.get(), params);
+		rq.Draw(buttonTransform, mesh, mat, params);
 	}
 	else if(obj->type == ObjectType::Laser) // Draw laser
 	{
@@ -411,7 +411,7 @@ void Track::DrawObjectState(RenderQueue& rq, class BeatmapPlayback& playback, Ob
 		LaserObjectState* laser = (LaserObjectState*)obj;
 
 		// Draw segment function
-		auto DrawSegment = [&](shared_ptr<Mesh> mesh, shared_ptr<Texture> texture, int part)
+		auto DrawSegment = [&](shared_ptr<Mesh>& mesh, shared_ptr<Texture>& texture, int part)
 		{
 			MaterialParameterSet laserParams;
 
@@ -426,7 +426,7 @@ void Track::DrawObjectState(RenderQueue& rq, class BeatmapPlayback& playback, Ob
 				laserParams.SetParameter("objectGlow", active ? objectGlow : 0.4f);
 				laserParams.SetParameter("hitState", active ? 2 + objectGlowState : 0);
 			}
-			laserParams.SetParameter("mainTex", texture.get());
+			laserParams.SetParameter("mainTex", texture);
 			laserParams.SetParameter("laserPart", part);
 
 			// Get the length of this laser segment
@@ -439,7 +439,7 @@ void Track::DrawObjectState(RenderQueue& rq, class BeatmapPlayback& playback, Ob
 
 			if(mesh)
 			{
-				rq.Draw(laserTransform, mesh.get(), laserMaterial.get(), laserParams);
+				rq.Draw(laserTransform, mesh, laserMaterial, laserParams);
 			}
 		};
 
@@ -475,11 +475,11 @@ void Track::DrawOverlays(class RenderQueue& rq)
 void Track::DrawTrackOverlay(RenderQueue& rq, shared_ptr<Texture> texture, float heightOffset /*= 0.05f*/, float widthScale /*= 1.0f*/)
 {
 	MaterialParameterSet params;
-	params.SetParameter("mainTex", texture.get());
+	params.SetParameter("mainTex", texture);
 	Transform transform = trackOrigin;
 	transform *= Transform::Scale({ widthScale, 1.0f, 1.0f });
 	transform *= Transform::Translation({ 0.0f, heightOffset, 0.0f });
-	rq.Draw(transform, trackMesh.get(), trackOverlay.get(), params);
+	rq.Draw(transform, trackMesh, trackOverlay, params);
 }
 void Track::DrawSprite(RenderQueue& rq, Vector3 pos, Vector2 size, shared_ptr<Texture> tex, Color color /*= Color::White*/, float tilt /*= 0.0f*/)
 {
@@ -490,9 +490,9 @@ void Track::DrawSprite(RenderQueue& rq, Vector3 pos, Vector2 size, shared_ptr<Te
 		spriteTransform *= Transform::Rotation({ tilt, 0.0f, 0.0f });
 
 	MaterialParameterSet params;
-	params.SetParameter("mainTex", tex.get());
+	params.SetParameter("mainTex", tex);
 	params.SetParameter("color", color);
-	rq.Draw(spriteTransform, centeredTrackMesh.get(), spriteMaterial.get(), params);
+	rq.Draw(spriteTransform, centeredTrackMesh, spriteMaterial, params);
 }
 
 Vector3 Track::TransformPoint(const Vector3 & p)

@@ -1194,7 +1194,7 @@ public:
 		shared_ptr<ParticleEmitter> emitter = std::make_shared<ParticleEmitter>();
 		m_particleSystem->AddEmitter(emitter.get());
 		emitter->material = particleMaterial.get();
-		emitter->texture = basicParticleTexture.get();
+		emitter->texture = basicParticleTexture;
 		emitter->loops = 0;
 		emitter->duration = 5.0f;
 		emitter->Set_SpawnRate(new PPRandomRange<float>(250, 300));
@@ -1218,7 +1218,7 @@ public:
 		shared_ptr<ParticleEmitter> emitter = std::make_shared<ParticleEmitter>();
 		m_particleSystem->AddEmitter(emitter.get());
 		emitter->material = particleMaterial.get();
-		emitter->texture = basicParticleTexture.get();
+		emitter->texture = basicParticleTexture;
 		emitter->loops = 0;
 		emitter->duration = 5.0f;
 		emitter->Set_SpawnRate(new PPRandomRange<float>(50, 100));
@@ -1242,7 +1242,7 @@ public:
 		shared_ptr<ParticleEmitter> emitter = std::make_shared<ParticleEmitter>();
 		m_particleSystem->AddEmitter(emitter.get());
 		emitter->material = particleMaterial.get();
-		emitter->texture = basicParticleTexture.get();
+		emitter->texture = basicParticleTexture;
 		emitter->loops = 1;
 		emitter->duration = 0.2f;
 		emitter->Set_SpawnRate(new PPRange<float>(200, 0));
@@ -1266,7 +1266,7 @@ public:
 		shared_ptr<ParticleEmitter> emitter = std::make_shared<ParticleEmitter>();
 		m_particleSystem->AddEmitter(emitter.get());
 		emitter->material = particleMaterial.get();
-		emitter->texture = basicParticleTexture.get();
+		emitter->texture = basicParticleTexture;
 		emitter->loops = 1;
 		emitter->duration = 0.15f;
 		emitter->Set_SpawnRate(new PPRange<float>(50, 0));

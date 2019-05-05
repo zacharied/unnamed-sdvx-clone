@@ -193,7 +193,7 @@ private:
 
 	void Exit()
 	{
-		g_gameWindow->OnAnyEvent.RemoveAll(this);
+		g_input.OnAnyEvent.RemoveAll(this);
 
 		Map<String, InputDevice> inputModeMap = {
 			{ "Keyboard", InputDevice::Keyboard },
@@ -276,7 +276,7 @@ public:
 		m_skins = Path::GetSubDirs("./skins/");
 
 		m_nctx = nk_sdl_init((SDL_Window*)g_gameWindow->Handle());
-		g_gameWindow->OnAnyEvent.Add(this, &SettingsScreen_Impl::UpdateNuklearInput);
+		g_input.OnAnyEvent.Add(this, &SettingsScreen_Impl::UpdateNuklearInput);
 		{
 			struct nk_font_atlas *atlas;
 			nk_sdl_font_stash_begin(&atlas);

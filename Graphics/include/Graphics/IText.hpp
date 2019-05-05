@@ -2,7 +2,8 @@
 
 #include <Shared/VectorMath.hpp>
 #include <Graphics/ITexture.hpp>
-#include <Graphics/IMesh.hpp>
+#include <Graphics/Mesh.hpp>
+
 
 namespace Graphics
 {
@@ -14,8 +15,8 @@ namespace Graphics
 	public:
 		virtual ~IText() = default;
 
-		virtual ITexture* GetTexture() = 0;
-		virtual IMesh* GetMesh() = 0;
+		virtual shared_ptr<ITexture> GetTexture() = 0;
+		virtual shared_ptr<IMesh> GetMesh() = 0;
 		virtual void Draw() = 0;
 		virtual Vector2 GetSize() = 0;
 	};

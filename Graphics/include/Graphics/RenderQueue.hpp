@@ -1,8 +1,8 @@
 #pragma once
-#include <Graphics/IMesh.hpp>
-#include <Graphics/IMaterial.hpp>
-#include <Graphics/ITexture.hpp>
-#include <Graphics/IFont.hpp>
+#include <Graphics/Mesh.hpp>
+#include <Graphics/Material.hpp>
+#include <Graphics/Texture.hpp>
+#include <Graphics/Font.hpp>
 
 namespace Graphics
 {
@@ -26,9 +26,9 @@ namespace Graphics
 		{}
 
 		// The mesh to draw
-		IMesh* mesh;
+		shared_ptr<IMesh> mesh;
 		// Material to use
-		IMaterial* mat;
+		shared_ptr<IMaterial> mat;
 		MaterialParameterSet params;
 		// The world transform
 		Transform worldTransform; 
@@ -41,8 +41,8 @@ namespace Graphics
 	{
 	public:
 		// List of points/lines
-		IMesh* mesh;
-		IMaterial* mat;
+		shared_ptr<IMesh> mesh;
+		shared_ptr<IMaterial> mat;
 		MaterialParameterSet params;
 		float size;
 	};
@@ -66,13 +66,13 @@ namespace Graphics
 		// Processes all render commands
 		void Process(bool clearQueue = true);
 		// Clears all the render commands in the queue
-		void Draw(const Transform& worldTransform, IMesh* m, IMaterial* mat, const MaterialParameterSet& params = MaterialParameterSet());
-		void Draw(const Transform& worldTransform, IText* text, IMaterial* mat, const MaterialParameterSet& params = MaterialParameterSet());
-		void DrawScissored(Rect scissor, const Transform& worldTransform, IMesh* m, IMaterial* mat, const MaterialParameterSet& params = MaterialParameterSet());
-		void DrawScissored(Rect scissor, const Transform& worldTransform, IText* text, IMaterial* mat, const MaterialParameterSet& params = MaterialParameterSet());
+		void Draw(const Transform& worldTransform, shared_ptr<Mesh>& m,    shared_ptr<Material>& mat, const MaterialParameterSet& params = MaterialParameterSet());
+		void Draw(const Transform& worldTransform, shared_ptr<Text>& text, shared_ptr<Material>& mat, const MaterialParameterSet& params = MaterialParameterSet());
+		void DrawScissored(Rect scissor, const Transform& worldTransform, shared_ptr<Mesh>& m, shared_ptr<Material>& mat, const MaterialParameterSet& params = MaterialParameterSet());
+		void DrawScissored(Rect scissor, const Transform& worldTransform, shared_ptr<Text>& text, shared_ptr<Material>& mat, const MaterialParameterSet& params = MaterialParameterSet());
 
 		// Draw for lines/points with point size parameter
-		void DrawPoints(IMesh* m, IMaterial* mat, const MaterialParameterSet& params, float pointSize);
+		void DrawPoints(shared_ptr<Mesh>& m, shared_ptr<Material>& mat, const MaterialParameterSet& params, float pointSize);
 
 	private:
 		RenderState m_renderState;

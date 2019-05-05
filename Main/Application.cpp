@@ -342,9 +342,10 @@ bool Application::m_Init()
 	g_gameWindow = new Graphics::Window(g_resolution, samplecount);
 	g_gameWindow->Show();
 
-	g_gameWindow->OnKeyPressed.Add(this, &Application::m_OnKeyPressed);
-	g_gameWindow->OnKeyReleased.Add(this, &Application::m_OnKeyReleased);
-	g_gameWindow->OnResized.Add(this, &Application::m_OnWindowResized);
+	g_input.OnKeyPressed.Add(this, &Application::m_OnKeyPressed);
+	g_input.OnKeyReleased.Add(this, &Application::m_OnKeyReleased);
+	g_input.OnResized.Add(this, &Application::m_OnWindowResized);
+	g_input.OnQuit.Add(this, &Application::m_Close);
 
 	// Initialize Input
 	g_input.Init(*g_gameWindow);
@@ -450,7 +451,8 @@ void Application::m_MainLoop()
 {
 	Timer appTimer;
 	m_lastRenderTime = 0.0f;
-	while(true)
+	m_running = true;
+	while(m_running)
 	{
 		// Process changes in the list of items
 		bool restoreTop = false;
@@ -631,7 +633,7 @@ void Application::m_Cleanup()
 
 	if(g_gl)
 	{
-		delete g_gl;
+		//delete g_gl;
 		g_gl = nullptr;
 	}
 
@@ -658,6 +660,11 @@ void Application::m_Cleanup()
 
 	// Finally, save config
 	m_SaveConfig();
+}
+
+void Application::m_Close()
+{
+	m_running = false;
 }
 
 class Game* Application::LaunchMap(const String& mapPath)
@@ -971,9 +978,9 @@ void Application::LoadGauge(bool hard)
 	m_gauge->backTexture->SetWrap(Graphics::TextureWrap::Clamp, Graphics::TextureWrap::Clamp);
 	m_gauge->maskTexture->SetWrap(Graphics::TextureWrap::Clamp, Graphics::TextureWrap::Clamp);
 	m_gauge->fillMaterial = LoadMaterial("gauge");
-	m_gauge->fillMaterial->opaque = false;
+	m_gauge->fillMaterial->SetOpaque(false);
 	m_gauge->baseMaterial = LoadMaterial("guiTex");
-	m_gauge->baseMaterial->opaque = false;
+	m_gauge->baseMaterial->SetOpaque(false);
 }
 
 void Application::DrawGauge(float rate, float x, float y, float w, float h, float deltaTime)
@@ -1095,7 +1102,7 @@ void Application::m_OnWindowResized(const Vector2i& newSize)
 int Application::FastText(String inputText, float x, float y, int size, int align)
 {
 	WString text = Utility::ConvertToWString(inputText);
-	auto te = g_application->LoadFont("segoeui.ttf")->CreateText(text, size);
+	shared_ptr<Text> te = g_application->LoadFont("segoeui.ttf")->CreateText(text, size);
 	Transform textTransform;
 	textTransform *= Transform::Translation(Vector2(x, y));
 
@@ -1121,7 +1128,7 @@ int Application::FastText(String inputText, float x, float y, int size, int alig
 
 	MaterialParameterSet params;
 	params.SetParameter("color", Vector4(1.f, 1.f, 1.f, 1.f));
-	g_application->GetRenderQueueBase()->Draw(textTransform, te.get(), g_application->GetFontMaterial().get(), params);
+	g_application->GetRenderQueueBase()->Draw(textTransform, te, g_application->GetFontMaterial(), params);
 	return 0;
 }
 

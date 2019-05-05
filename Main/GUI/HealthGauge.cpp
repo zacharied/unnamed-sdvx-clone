@@ -6,23 +6,23 @@ HealthGauge::HealthGauge()
 {
 }
 
-void HealthGauge::Render(shared_ptr<Mesh> m, float deltaTime)
+void HealthGauge::Render(shared_ptr<Mesh>& m, float deltaTime)
 {
-	auto drawTextured = [&](Color c, Texture* t)
+	auto drawTextured = [&](Color c, shared_ptr<ITexture> t)
 	{
 		Transform transform;
 		MaterialParameterSet params;
 		params.SetParameter("mainTex", t);
 		params.SetParameter("color", c);
-		g_application->GetRenderQueueBase()->Draw(transform, m.get(), baseMaterial.get(), params);
+		g_application->GetRenderQueueBase()->Draw(transform, m, baseMaterial, params);
 	};
 
 	if(backTexture)
-		drawTextured(Color::White, backTexture.get());
+		drawTextured(Color::White, backTexture);
 
 	MaterialParameterSet params;
-	params.SetParameter("mainTex", fillTexture.get());
-	params.SetParameter("maskTex", maskTexture.get());
+	params.SetParameter("mainTex", fillTexture);
+	params.SetParameter("maskTex", maskTexture);
 	params.SetParameter("rate", rate);
 
 	Color color;
@@ -36,10 +36,10 @@ void HealthGauge::Render(shared_ptr<Mesh> m, float deltaTime)
 	}
 	params.SetParameter("barColor", color);
 	Transform trans;
-	g_application->GetRenderQueueBase()->Draw(trans, m.get(), fillMaterial.get(), params);
+	g_application->GetRenderQueueBase()->Draw(trans, m, fillMaterial, params);
 
 	//// Draw frame last
-	drawTextured(Color::White, frontTexture.get());
+	drawTextured(Color::White, frontTexture);
 }
 
 Vector2 HealthGauge::GetDesiredSize()

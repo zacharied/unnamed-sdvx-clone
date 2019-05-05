@@ -47,6 +47,9 @@ namespace Graphics
 
 		bool opaque = true;
 		bool GetOpaque() override;
+		void SetOpaque(bool value) override;
+		void SetBlendMode(MaterialBlendMode value) override;
+		MaterialBlendMode GetBlendMode() override;
 		MaterialBlendMode blendMode = MaterialBlendMode::Normal;
 
 		void AssignShader(unique_ptr<IShader> shader) override;

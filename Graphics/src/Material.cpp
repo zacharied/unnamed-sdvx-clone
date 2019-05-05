@@ -253,7 +253,7 @@ namespace Graphics
 					//Logf("Texture not found \"%s\"", Logger::Warning, p.first);
 					break;
 				}
-				auto tex = p.second.Get<ITexture*>();
+				auto tex = p.second.textureBidning;
 
 				// Bind the texture
 				tex->Bind(*textureUnit);
@@ -332,5 +332,17 @@ namespace Graphics
 	bool Material::GetOpaque()
 	{
 		return opaque;
+	}
+	void Material::SetOpaque(bool value)
+	{
+		opaque = value;
+	}
+	void Material::SetBlendMode(MaterialBlendMode value)
+	{
+		blendMode = value;
+	}
+	MaterialBlendMode Material::GetBlendMode()
+	{
+		return blendMode;
 	}
 }

@@ -27,7 +27,7 @@ public:
 
 		// Render a fullscreen quad
 		RenderQueue rq(renderState);
-		rq.Draw(Transform(), fullscreenMesh.get(), fullscreenMaterial.get(), fullscreenMaterialParams);
+		rq.Draw(Transform(), fullscreenMesh, fullscreenMaterial, fullscreenMaterialParams);
 		rq.Process();
 	}
 
@@ -91,7 +91,7 @@ class TestBackground : public FullscreenBackground
 
 
 		CheckedLoad(fullscreenMaterial = LoadBackgroundMaterial(matPath));
-		fullscreenMaterial->opaque = false;
+		fullscreenMaterial->SetOpaque(false);
 
 		return true;
 	}
@@ -131,13 +131,13 @@ class TestBackground : public FullscreenBackground
 		float tilt = game->GetCamera().GetActualRoll() + game->GetCamera().GetBackgroundSpin();
 		fullscreenMaterialParams.SetParameter("clearTransition", clearTransition);
 		fullscreenMaterialParams.SetParameter("tilt", tilt);
-		fullscreenMaterialParams.SetParameter("mainTex", backgroundTexture.get());
+		fullscreenMaterialParams.SetParameter("mainTex", backgroundTexture);
 		fullscreenMaterialParams.SetParameter("screenCenter", screenCenter);
 		fullscreenMaterialParams.SetParameter("timing", timing);
 		if (foreground)
 		{
 			frameBufferTexture->SetFromFrameBuffer({0,0});
-			fullscreenMaterialParams.SetParameter("fb_tex", frameBufferTexture.get());
+			fullscreenMaterialParams.SetParameter("fb_tex", frameBufferTexture);
 		}
 
 		FullscreenBackground::Render(deltaTime);

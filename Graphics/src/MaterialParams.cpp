@@ -38,9 +38,12 @@ namespace Graphics
 		Add(name, MaterialParameter::Create(tf, GL_FLOAT_MAT4));
 	}
 
-	void MaterialParameterSet::SetParameter(const String& name, ITexture* tex)
+	void MaterialParameterSet::SetParameter(const String& name, shared_ptr<ITexture> tex)
 	{
-		Add(name, MaterialParameter::Create(tex, GL_SAMPLER_2D));
+		MaterialParameter mp;
+		mp.parameterType = GL_SAMPLER_2D;
+		mp.textureBidning = tex;
+		Add(name, mp);
 	}
 
 	void MaterialParameterSet::SetParameter(const String& name, const Vector2i& vec2)

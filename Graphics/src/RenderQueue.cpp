@@ -80,9 +80,9 @@ namespace Graphics
 						glEnable(GL_BLEND);
 						blendEnabled = true;
 					}
-					if(activeBlendMode != mat->blendMode)
+					if(activeBlendMode != mat->GetBlendMode())
 					{
-						switch(mat->blendMode)
+						switch(mat->GetBlendMode())
 						{
 						case MaterialBlendMode::Normal:
 							glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -113,7 +113,7 @@ namespace Graphics
 			if(auto sdc = dynamic_cast<SimpleDrawCall*>(item.get()); sdc)
 			{
 				m_renderState.worldTransform = sdc->worldTransform;
-				SetupMaterial(sdc->mat, sdc->params);
+				SetupMaterial(sdc->mat.get(), sdc->params);
 
 				// Check if scissor is enabled
 				bool useScissor = (sdc->scissorRect.size.x >= 0);
@@ -138,7 +138,7 @@ namespace Graphics
 					}
 				}
 
-				DrawOrRedrawMesh(sdc->mesh);
+				DrawOrRedrawMesh(sdc->mesh.get());
 			}
 			else if(auto pdc = dynamic_cast<PointDrawCall*>(item.get()); pdc)
 			{
@@ -150,7 +150,7 @@ namespace Graphics
 				}
 
 				m_renderState.worldTransform = Transform();
-				SetupMaterial(pdc->mat, pdc->params);
+				SetupMaterial(pdc->mat.get(), pdc->params);
 				PrimitiveType pt = pdc->mesh->GetPrimitiveType();
 
 				if(pt >= PrimitiveType::LineList && pt <= PrimitiveType::LineStrip)
@@ -158,7 +158,7 @@ namespace Graphics
 				else
 					glPointSize(pdc->size);
 				
-				DrawOrRedrawMesh(pdc->mesh);
+				DrawOrRedrawMesh(pdc->mesh.get());
 			}
 		}
 
@@ -170,7 +170,7 @@ namespace Graphics
 			m_orderedCommands.clear();
 	}
 
-	void RenderQueue::Draw(const Transform& worldTransform, IMesh* m, IMaterial* mat, const MaterialParameterSet& params)
+	void RenderQueue::Draw(const Transform& worldTransform, shared_ptr<Mesh>& m, shared_ptr<Material>& mat, const MaterialParameterSet& params)
 	{
 		auto sdc = make_unique<SimpleDrawCall>();
 		sdc->mat = mat;
@@ -180,7 +180,7 @@ namespace Graphics
 		m_orderedCommands.push_back(std::move(sdc));
 	}
 
-	void RenderQueue::Draw(const Transform& worldTransform, IText* text, IMaterial* mat, const MaterialParameterSet& params)
+	void RenderQueue::Draw(const Transform& worldTransform, shared_ptr<Text>& text, shared_ptr<Material>& mat, const MaterialParameterSet& params)
 	{
 		auto sdc = make_unique<SimpleDrawCall>();
 		sdc->mat = mat;
@@ -192,7 +192,7 @@ namespace Graphics
 		m_orderedCommands.push_back(std::move(sdc));
 	}
 
-	void RenderQueue::DrawScissored(Rect scissor, const Transform& worldTransform, IMesh* m, IMaterial* mat, const MaterialParameterSet& params)
+	void RenderQueue::DrawScissored(Rect scissor, const Transform& worldTransform, shared_ptr<Mesh>& m, shared_ptr<Material>& mat, const MaterialParameterSet& params)
 	{
 		auto sdc = make_unique<SimpleDrawCall>();
 		sdc->mat = mat;
@@ -203,7 +203,7 @@ namespace Graphics
 		m_orderedCommands.push_back(std::move(sdc));
 	}
 
-	void RenderQueue::DrawScissored(Rect scissor, const Transform& worldTransform, IText* text, IMaterial* mat, const MaterialParameterSet& params)
+	void RenderQueue::DrawScissored(Rect scissor, const Transform& worldTransform, shared_ptr<Text>& text, shared_ptr<Material>& mat, const MaterialParameterSet& params)
 	{
 		auto sdc = make_unique<SimpleDrawCall>();
 		sdc->mat = mat;
@@ -216,7 +216,7 @@ namespace Graphics
 		m_orderedCommands.push_back(std::move(sdc));
 	}
 
-	void RenderQueue::DrawPoints(IMesh* m, IMaterial* mat, const MaterialParameterSet& params, float pointSize)
+	void RenderQueue::DrawPoints(shared_ptr<Mesh>& m, shared_ptr<Material>& mat, const MaterialParameterSet& params, float pointSize)
 	{
 		auto pdc = make_unique<PointDrawCall>();
 		pdc->mat = mat;

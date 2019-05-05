@@ -9,7 +9,7 @@
 
 struct Label
 {
-	shared_ptr<IText> text;
+	shared_ptr<Text> text;
 	int size;
 	float scale;
 	Font::TextOptions opt;
@@ -410,7 +410,7 @@ static int lCreateLabel(lua_State* L /*const char* text, int size, bool monospac
 	int monospace = luaL_checkinteger(L, 3);
 
 	Label newLabel;
-	newLabel.text = g_guiState.currentFont->CreateText(Utility::ConvertToWString(text), 
+	newLabel.text = g_guiState.currentFont->CreateText(Utility::ConvertToWString(text),
 		size * g_guiState.t.GetScale().y,
 		(Font::TextOptions)monospace);
 	newLabel.scale = g_guiState.t.GetScale().y;
@@ -492,7 +492,7 @@ static int lDrawLabel(lua_State* L /*int labelId, float x, float y, float maxWid
 
 	MaterialParameterSet params;
 	params.SetParameter("color", g_guiState.fillColor);
-	g_guiState.rq->DrawScissored(g_guiState.scissor ,textTransform, te.text.get(), g_guiState.fontMaterial.get(), params);
+	g_guiState.rq->DrawScissored(g_guiState.scissor ,textTransform, te.text, g_guiState.fontMaterial, params);
 	return 0;
 }
 
@@ -610,10 +610,10 @@ static int lFastRect(lua_State* L /*float x, float y, float w, float h*/)
 	y = luaL_checknumber(L, 2);
 	w = luaL_checknumber(L, 3);
 	h = luaL_checknumber(L, 4);
-	auto newQuad = Graphics::Mesh::GenerateQuad(Vector2(x, y), Vector2(w, h));
+	shared_ptr<Mesh> newQuad = Graphics::Mesh::GenerateQuad(Vector2(x, y), Vector2(w, h));
 	MaterialParameterSet params;
 	params.SetParameter("color", g_guiState.fillColor);
-	g_guiState.rq->DrawScissored(g_guiState.scissor, g_guiState.t, newQuad.get(), g_guiState.fillMaterial.get(), params);
+	g_guiState.rq->DrawScissored(g_guiState.scissor, g_guiState.t, newQuad, g_guiState.fillMaterial, params);
 	return 0;
 }
 
@@ -626,7 +626,7 @@ static int lFastText(lua_State* L /* String utf8string, float x, float y */)
 	y = luaL_checknumber(L, 3);
 
 	WString text = Utility::ConvertToWString(s);
-	auto te = g_guiState.currentFont->CreateText(text, g_guiState.fontSize);
+	shared_ptr<Text> te = std::static_pointer_cast<Text, IText>(g_guiState.currentFont->CreateText(text, g_guiState.fontSize));
 	Transform textTransform = g_guiState.t;
 	textTransform *= Transform::Translation(Vector2(x, y));
 
@@ -651,7 +651,7 @@ static int lFastText(lua_State* L /* String utf8string, float x, float y */)
 	}
 	MaterialParameterSet params;
 	params.SetParameter("color", g_guiState.fillColor);
-	g_guiState.rq->DrawScissored(g_guiState.scissor, textTransform, te.get(), g_guiState.fontMaterial.get(), params);
+	g_guiState.rq->DrawScissored(g_guiState.scissor, textTransform, te, g_guiState.fontMaterial, params);
 
 	return 0;
 }

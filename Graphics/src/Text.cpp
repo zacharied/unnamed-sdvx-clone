@@ -10,7 +10,7 @@
 
 namespace Graphics
 {
-	ITexture* Text::GetTexture()
+	shared_ptr<ITexture> Text::GetTexture()
 	{
 		return fontSize->GetTextureMap();
 	}
@@ -21,9 +21,9 @@ namespace Graphics
 		mesh->Draw();
 	}
 
-	IMesh* Text::GetMesh()
+	shared_ptr<IMesh> Text::GetMesh()
 	{
-		return mesh.get();
+		return mesh;
 	}
 
 	Vector2 Text::GetSize()
@@ -50,14 +50,14 @@ namespace Graphics
 		return infos[it->second];
 	}
 
-	ITexture* FontSize::GetTextureMap()
+	shared_ptr<ITexture> FontSize::GetTextureMap()
 	{
 		if (bUpdated)
 		{
 			textureMap = spriteMap->GenerateTexture();
 			bUpdated = false;
 		}
-		return textureMap.get();
+		return textureMap;
 	}
 
 	const CharInfo& FontSize::AddCharInfo(wchar_t t)
@@ -120,7 +120,7 @@ namespace Graphics
 		}
 	}
 
-	optional<shared_ptr<IText>> TextCache::GetText(const WString& key)
+	optional<shared_ptr<Text>> TextCache::GetText(const WString& key)
 	{
 		auto it = find(key);
 		if (it != end())
@@ -131,7 +131,7 @@ namespace Graphics
 		return {};
 	}
 
-	void TextCache::AddText(const WString& key, shared_ptr<IText> obj)
+	void TextCache::AddText(const WString& key, shared_ptr<Text> obj)
 	{
 		Update();
 		auto it = find(key);

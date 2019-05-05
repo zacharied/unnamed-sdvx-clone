@@ -21,7 +21,7 @@ namespace Graphics
 		IMaterial* material;
 
 		// Texture to use for the particle
-		ITexture* texture;
+		shared_ptr<ITexture> texture;
 
 		// Emitter location
 		Vector3 position;
@@ -134,7 +134,7 @@ namespace Graphics
 		uint32 m_emitterLoopIndex = 0;
 
 		friend class Particle;
-		class Particle* m_particles;
+		class Particle* m_particles = nullptr;
 
 		uint32 m_poolSize = 0;
 

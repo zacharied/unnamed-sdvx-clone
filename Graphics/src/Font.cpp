@@ -24,7 +24,7 @@ namespace Graphics
 		return std::move(font);
 	}
 
-	shared_ptr<IText> Font::CreateText(const WString & str, uint32 nFontSize, TextOptions options)
+	shared_ptr<Text> Font::CreateText(const WString & str, uint32 nFontSize, TextOptions options)
 	{
 		FontSize* size = GetSize(nFontSize);
 

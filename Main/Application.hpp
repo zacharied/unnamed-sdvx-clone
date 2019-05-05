@@ -106,6 +106,7 @@ private:
 	void m_MainLoop();
 	void m_Tick();
 	void m_Cleanup();
+	void m_Close();
 	void m_OnKeyPressed(int32 key);
 	void m_OnKeyReleased(int32 key);
 	void m_OnWindowResized(const Vector2i& newSize);
@@ -128,6 +129,7 @@ private:
 	float m_deltaTime;
 	bool m_allowMapConversion;
 	bool m_hasUpdate = false;
+	bool m_running = false;
 	String m_updateUrl;
 	String m_updateVersion;
 	String m_currentVersion;
