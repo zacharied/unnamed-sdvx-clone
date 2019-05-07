@@ -76,10 +76,9 @@ GUIState g_guiState;
 static int LoadFont(const char* name, const char* filename)
 {
 	{
-		shared_ptr<IFont> cached = g_guiState.fontCahce[name];
-		if (cached)
+		if (g_guiState.fontCahce.Contains(name))
 		{
-			g_guiState.currentFont = cached;
+			g_guiState.currentFont = g_guiState.fontCahce.at(name);
 		}
 		else
 		{

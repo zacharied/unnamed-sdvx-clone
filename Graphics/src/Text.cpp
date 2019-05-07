@@ -147,7 +147,8 @@ namespace Graphics
 
 	FontLibrary::FontLibrary()
 	{
-		assert(FT_Init_FreeType(&library) == FT_Err_Ok);
+		auto res = FT_Init_FreeType(&library);
+		assert(res == FT_Err_Ok);
 		if(!LoadFallbackFont())
 			Log("Failed to load embeded fallback font", Logger::Warning);
 	}
@@ -171,7 +172,7 @@ namespace Graphics
 		file.Read(loadedFallbackFont.data(), loadedFallbackFont.size());
 		file.Close();
 
-		if(FT_New_Memory_Face(library, loadedFallbackFont.data(), (uint32)loadedFallbackFont.size(), 0, &fallbackFont) != 0)
+		if (FT_New_Memory_Face(library, loadedFallbackFont.data(), (uint32)loadedFallbackFont.size(), 0, &fallbackFont) != 0)
 			return false;
 
 		if(FT_Select_Charmap(fallbackFont, FT_ENCODING_UNICODE) != 0)

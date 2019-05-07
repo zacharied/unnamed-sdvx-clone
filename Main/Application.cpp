@@ -283,7 +283,10 @@ bool Application::m_Init()
 #endif // GIT_COMMIT
 
 
-
+	{
+		ProfilerScope $("FontLibrary init");
+		FontLibrary::instance();
+	}
 
 	// Must have command line
 	assert(m_commandLine.size() >= 1);

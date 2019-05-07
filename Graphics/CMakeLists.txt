@@ -60,6 +60,6 @@ else(WIN32)
 		include_directories(${X11_INCLUDE_DIR})
 	endif(APPLE)
 
-	include_directories(${FREETYPE_INCLUDE_DIRS})
+	target_include_directories(Graphics PUBLIC ${FREETYPE_INCLUDE_DIRS})
 	find_package(Freetype REQUIRED)
 endif(WIN32)
