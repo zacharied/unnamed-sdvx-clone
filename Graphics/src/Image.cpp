@@ -202,8 +202,8 @@ namespace Graphics
 			return false;
 
 		// Check for PNG based on first 8 bytes
-		char pngSign[8] = { 137, 80, 78, 71, 13, 10, 26, 10 };
-		char firstEight[8];
+		unsigned char pngSign[8] = { 137, 80, 78, 71, 13, 10, 26, 10 };
+		unsigned char firstEight[8];
 		memcpy(firstEight, b.data(), 8);
 
 		if (memcmp(pngSign, firstEight, 8) == 0)

@@ -799,7 +799,7 @@ shared_ptr<IFont> Application::LoadFont(const String & name, const bool & extern
 	else
 		path = String("skins/") + m_skin + String("/fonts/") + name;
 
-	auto newFont = Font::Create(path);
+	auto newFont = Graphics::Font::Create(path);
 	assert(newFont);
 	m_fonts.Add(name, std::move(*newFont));
 	return m_fonts[name];

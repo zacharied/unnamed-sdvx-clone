@@ -8,7 +8,6 @@
 #endif
 
 
-class Window;
 class Gamepad_Impl : public Gamepad
 {
 public:

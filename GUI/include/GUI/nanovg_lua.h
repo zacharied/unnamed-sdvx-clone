@@ -83,7 +83,7 @@ static int LoadFont(const char* name, const char* filename)
 		else
 		{
 			String path = filename;
-			auto f = Font::Create(path);
+			auto f = Graphics::Font::Create(path);
 			if (!f)
 				return 0;
 			shared_ptr<IFont> newFont = std::move(*f);
@@ -421,7 +421,7 @@ static int lCreateLabel(lua_State* L /*const char* text, int size, bool monospac
 	Label newLabel;
 	newLabel.text = g_guiState.currentFont->CreateText(Utility::ConvertToWString(text),
 		size * g_guiState.t.GetScale().y,
-		(Font::TextOptions)monospace);
+		(IFont::TextOptions)monospace);
 	newLabel.scale = g_guiState.t.GetScale().y;
 	newLabel.size = size;
 	newLabel.opt = (IFont::TextOptions)monospace;

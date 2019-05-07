@@ -72,9 +72,9 @@ add_subdirectory(Audio)
 add_subdirectory(Beatmap)
 add_subdirectory(GUI)
 # Unit test projects
-add_subdirectory(Tests)
-add_subdirectory(Tests.Shared)
-add_subdirectory(Tests.Game)
+#add_subdirectory(Tests)
+#add_subdirectory(Tests.Shared)
+#add_subdirectory(Tests.Game)
 
 # Enabled project filters on windows
 if(MSVC)
