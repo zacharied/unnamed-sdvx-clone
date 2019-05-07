@@ -65,6 +65,7 @@ struct GUIState
 	Map<int, ImageAnimation*> animations;
 	int scissorOffset;
 	Vector<Transform> transformStack;
+	Vector<unique_ptr<IText>> fastTextCache;
 };
 
 
@@ -658,8 +659,9 @@ static int lFastText(lua_State* L /* String utf8string, float x, float y */)
 	}
 	MaterialParameterSet params;
 	params.SetParameter("color", g_guiState.fillColor);
-	g_guiState.rq->DrawScissored(g_guiState.scissor, textTransform, te.get(), g_guiState.fontMaterial.get(), params);
-
+	//g_guiState.fastTextCache.push_back(std::move(te));
+	//unique_ptr<IText>& cached = g_guiState.fastTextCache.back();
+	//g_guiState.rq->DrawScissored(g_guiState.scissor, textTransform, cached.get(), g_guiState.fontMaterial.get(), params);
 	return 0;
 }
 

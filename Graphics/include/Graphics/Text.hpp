@@ -25,7 +25,6 @@ namespace Graphics
 
 	private:
 		friend class Font;
-
 		Vector2 size;
 		unique_ptr<IMesh> mesh;
 		struct FontSize* fontSize;

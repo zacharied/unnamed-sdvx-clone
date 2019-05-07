@@ -288,33 +288,5 @@ namespace Graphics
 		return SDL_GetRelativeMouseMode() == SDL_TRUE;
 	}
 
-	void Window::HandleKeyEvent(SDL_Keycode code, uint8 newState, int32 repeat)
-	{
-		SDL_Keymod m = SDL_GetModState();
-		m_modKeys = ModifierKeys::None;
-
-		if((m & KMOD_ALT) != 0)
-			(uint8&)m_modKeys |= (uint8)ModifierKeys::Alt;
-
-		if((m & KMOD_CTRL) != 0)
-			(uint8&)m_modKeys |= (uint8)ModifierKeys::Ctrl;
-
-		if((m & KMOD_SHIFT) != 0)
-			(uint8&)m_modKeys |= (uint8)ModifierKeys::Shift;
-
-		uint8& currentState = m_keyStates[code];
-		if(currentState != newState)
-		{
-			currentState = newState;
-			if(newState == 1)
-				OnKeyPressed.Call(code);
-			else
-				OnKeyReleased.Call(code);
-		}
-
-		if(currentState == 1)
-			OnKeyRepeat.Call(code);
-	}
-
 	ImplementBitflagEnum(ModifierKeys);
 }

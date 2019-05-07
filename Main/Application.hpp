@@ -110,6 +110,7 @@ private:
 	Map<String, Sample> m_samples;
 	shared_ptr<IMaterial> m_fontMaterial;
 	shared_ptr<IMaterial> m_fillMaterial;
+	shared_ptr<IMesh> m_gaugeMesh;
 	class HealthGauge* m_gauge;
 	Map<String, CachedJacketImage*> m_jacketImages;
 	String m_lastMapPath;
@@ -120,6 +121,7 @@ private:
 	float m_deltaTime;
 	bool m_allowMapConversion;
 	bool m_hasUpdate = false;
+	bool m_running = false;
 	String m_updateUrl;
 	String m_updateVersion;
 	String m_currentVersion;

@@ -134,7 +134,7 @@ namespace Graphics
 		uint32 m_emitterLoopIndex = 0;
 
 		friend class Particle;
-		class Particle* m_particles;
+		class Particle* m_particles = nullptr;
 
 		uint32 m_poolSize = 0;
 

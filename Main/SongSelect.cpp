@@ -31,10 +31,10 @@ public:
 
 	~TextInput()
 	{
-		g_gameWindow->OnTextInput.RemoveAll(this);
-		g_gameWindow->OnTextComposition.RemoveAll(this);
-		g_gameWindow->OnKeyRepeat.RemoveAll(this);
-		g_gameWindow->OnKeyPressed.RemoveAll(this);
+		g_input.OnTextInput.RemoveAll(this);
+		g_input.OnTextComposition.RemoveAll(this);
+		g_input.OnKeyRepeat.RemoveAll(this);
+		g_input.OnKeyPressed.RemoveAll(this);
 	}
 
 	void OnTextInput(const WString& wstr)
@@ -81,18 +81,18 @@ public:
 		if(state)
 		{
 			SDL_StartTextInput();
-			g_gameWindow->OnTextInput.Add(this, &TextInput::OnTextInput);
-			g_gameWindow->OnTextComposition.Add(this, &TextInput::OnTextComposition);
-			g_gameWindow->OnKeyRepeat.Add(this, &TextInput::OnKeyRepeat);
-			g_gameWindow->OnKeyPressed.Add(this, &TextInput::OnKeyPressed);
+			g_input.OnTextInput.Add(this, &TextInput::OnTextInput);
+			g_input.OnTextComposition.Add(this, &TextInput::OnTextComposition);
+			g_input.OnKeyRepeat.Add(this, &TextInput::OnKeyRepeat);
+			g_input.OnKeyPressed.Add(this, &TextInput::OnKeyPressed);
 		}
 		else
 		{
 			SDL_StopTextInput();
-			g_gameWindow->OnTextInput.RemoveAll(this);
-			g_gameWindow->OnTextComposition.RemoveAll(this);
-			g_gameWindow->OnKeyRepeat.RemoveAll(this);
-			g_gameWindow->OnKeyPressed.RemoveAll(this);
+			g_input.OnTextInput.RemoveAll(this);
+			g_input.OnTextComposition.RemoveAll(this);
+			g_input.OnKeyRepeat.RemoveAll(this);
+			g_input.OnKeyPressed.RemoveAll(this);
 		}
 	}
 	void Reset()
@@ -1034,7 +1034,7 @@ public:
 		CheckedLoad(m_lua = g_application->LoadScript("songselect/background"));
 		g_input.OnButtonPressed.Add(this, &SongSelect_Impl::m_OnButtonPressed);
 		g_input.OnButtonReleased.Add(this, &SongSelect_Impl::m_OnButtonReleased);
-		g_gameWindow->OnMouseScroll.Add(this, &SongSelect_Impl::m_OnMouseScroll);
+		g_input.OnMouseScroll.Add(this, &SongSelect_Impl::m_OnMouseScroll);
 		m_settingsWheel = Ref<GameSettingsWheel>(new GameSettingsWheel());
 		if (!m_settingsWheel->Init())
 			return false;
@@ -1075,7 +1075,7 @@ public:
 		m_mapDatabase.OnMapsCleared.Clear();
 		g_input.OnButtonPressed.RemoveAll(this);
 		g_input.OnButtonReleased.RemoveAll(this);
-		g_gameWindow->OnMouseScroll.RemoveAll(this);
+		g_input.OnMouseScroll.RemoveAll(this);
 		m_selectionWheel.Destroy();
 		m_filterSelection.Destroy();
 		if (m_lua)

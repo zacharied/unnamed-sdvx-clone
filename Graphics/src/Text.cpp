@@ -35,6 +35,7 @@ namespace Graphics
 	{
 		auto res = SpriteMap::Create();
 		assert(res); // TODO: (factory)
+		spriteMap = std::move(*res);
 		auto tex = Texture::Create();
 		assert(tex); // TODO: (factory)
 		textureMap = std::move(*tex);

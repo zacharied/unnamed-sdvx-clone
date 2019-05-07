@@ -344,9 +344,9 @@ bool Application::m_Init()
 	g_gameWindow = new Graphics::Window(g_resolution, samplecount);
 	g_gameWindow->Show();
 
-	g_gameWindow->OnKeyPressed.Add(this, &Application::m_OnKeyPressed);
-	g_gameWindow->OnKeyReleased.Add(this, &Application::m_OnKeyReleased);
-	g_gameWindow->OnResized.Add(this, &Application::m_OnWindowResized);
+	g_input.OnKeyPressed.Add(this, &Application::m_OnKeyPressed);
+	g_input.OnKeyReleased.Add(this, &Application::m_OnKeyReleased);
+	g_input.OnResized.Add(this, &Application::m_OnWindowResized);
 
 	// Initialize Input
 	g_input.Init(*g_gameWindow);
@@ -455,7 +455,9 @@ void Application::m_MainLoop()
 {
 	Timer appTimer;
 	m_lastRenderTime = 0.0f;
-	while(true)
+	m_running = true;
+	g_input.OnQuit.Add(this, &Application::Shutdown);
+	while(m_running)
 	{
 		// Process changes in the list of items
 		bool restoreTop = false;
@@ -634,7 +636,7 @@ void Application::m_Cleanup()
 
 	if(g_gl)
 	{
-		delete g_gl;
+		//delete g_gl;
 		g_gl = nullptr;
 	}
 
@@ -672,7 +674,7 @@ class Game* Application::LaunchMap(const String& mapPath)
 }
 void Application::Shutdown()
 {
-	g_gameWindow->Close();
+	m_running = false;
 }
 
 void Application::AddTickable(class IApplicationTickable* tickable, class IApplicationTickable* insertBefore)
@@ -987,8 +989,8 @@ void Application::LoadGauge(bool hard)
 void Application::DrawGauge(float rate, float x, float y, float w, float h, float deltaTime)
 {
 	m_gauge->rate = rate;
-	auto m = Mesh::GenerateQuad(Vector2(x, y), Vector2(w, h));
-	m_gauge->Render(m.get(), deltaTime);
+	m_gaugeMesh = Mesh::GenerateQuad(Vector2(x, y), Vector2(w, h));
+	m_gauge->Render(m_gaugeMesh.get(), deltaTime);
 }
 
 float Application::GetRenderFPS() const

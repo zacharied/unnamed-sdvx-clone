@@ -29,7 +29,7 @@ public:
 	Color() = default;
 	Color(float r, float g, float b, float a = 1.0);
 	Color(const Color& other, float a);
-	explicit Color(const VectorMath::VectorBase<uint8, 4>& icolor);
+	Color(const VectorMath::VectorBase<uint8, 4>& icolor);
 
 	Colori ToRGBA8() const;
 

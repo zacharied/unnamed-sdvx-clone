@@ -26,13 +26,103 @@ namespace Graphics
 
 	unique_ptr<IText> Font::CreateText(const WString & str, uint32 nFontSize, TextOptions options)
 	{
-		return unique_ptr<IText>();
+		FontSize* size = GetSize(nFontSize);
+
+		///TODO: Fix caching
+		//Text cachedText = size->cache.GetText(str);
+		//if (cachedText)
+		//	return cachedText;
+
+		struct TextVertex : public VertexFormat<Vector2, Vector2>
+		{
+			TextVertex(Vector2 point, Vector2 uv) : pos(point), tex(uv) {}
+			Vector2 pos;
+			Vector2 tex;
+		};
+
+		auto ret = make_unique<Text>();
+		ret->mesh = *Mesh::Create();
+
+		float monospaceWidth = size->GetCharInfo(L'_').advance;
+
+		Vector<TextVertex> vertices;
+		Vector2 pen;
+		for (wchar_t c : str)
+		{
+			const CharInfo& info = size->GetCharInfo(c);
+
+			if (info.coords.size.x != 0 && info.coords.size.y != 0)
+			{
+				Vector2 corners[4];
+				corners[0] = Vector2(0, 0);
+				corners[1] = Vector2((float)info.coords.size.x, 0);
+				corners[2] = Vector2((float)info.coords.size.x, (float)info.coords.size.y);
+				corners[3] = Vector2(0, (float)info.coords.size.y);
+
+				Vector2 offset = Vector2(pen.x, pen.y);
+				offset.x += info.leftOffset;
+				offset.y += nFontSize - info.topOffset;
+				if (((int)options & (int)TextOptions::Monospace) != 0)
+				{
+					offset.x += (monospaceWidth - info.coords.size.x) * 0.5f;
+				}
+				pen.x = floorf(pen.x);
+				pen.y = floorf(pen.y);
+
+				vertices.emplace_back(offset + corners[2],
+					corners[2] + info.coords.pos);
+				vertices.emplace_back(offset + corners[0],
+					corners[0] + info.coords.pos);
+				vertices.emplace_back(offset + corners[1],
+					corners[1] + info.coords.pos);
+
+				vertices.emplace_back(offset + corners[3],
+					corners[3] + info.coords.pos);
+				vertices.emplace_back(offset + corners[0],
+					corners[0] + info.coords.pos);
+				vertices.emplace_back(offset + corners[2],
+					corners[2] + info.coords.pos);
+			}
+
+			if (c == L'\n')
+			{
+				pen.x = 0.0f;
+				pen.y += size->lineHeight;
+				ret->size.y = pen.y;
+			}
+			else if (c == L'\t')
+			{
+				const CharInfo& space = size->GetCharInfo(L' ');
+				pen.x += space.advance * 3.0f;
+			}
+			else
+			{
+				if (((int)options & (int)TextOptions::Monospace) != 0)
+				{
+					pen.x += monospaceWidth;
+				}
+				else
+					pen.x += info.advance;
+			}
+			ret->size.x = std::max(ret->size.x, pen.x);
+		}
+
+		ret->size.y += size->lineHeight;
+
+		ret->fontSize = size;
+		ret->mesh->SetData(vertices);
+		ret->mesh->SetPrimitiveType(PrimitiveType::TriangleList);
+
+		//Text textObj = Ref<TextRes>(ret);
+		// Insert into cache
+		//size->cache.AddText(str, textObj);
+		return std::move(ret);
 	}
 
 	Font::~Font()
 	{
 		m_sizes.clear();
-		FT_Done_Face(m_face);
+		//FT_Done_Face(m_face); ///TODO: Investigate error
 	}
 
 	bool Font::Init(const String& assetPath)
@@ -81,100 +171,4 @@ namespace Graphics
 			return (*obj.first).second.get();
 		}
 	}
-
-	/*
-	Ref<TextRes> CreateText(const WString& str, uint32 nFontSize, TextOptions options)
-		{
-			FontSize* size = GetSize(nFontSize);
-
-			Text cachedText = size->cache.GetText(str);
-			if(cachedText)
-				return cachedText;
-
-			struct TextVertex : public VertexFormat<Vector2, Vector2>
-			{
-				TextVertex(Vector2 point, Vector2 uv) : pos(point), tex(uv) {}
-				Vector2 pos;
-				Vector2 tex;
-			};
-
-			TextRes* ret = new TextRes();
-			ret->mesh = MeshRes::Create(m_gl);
-
-			float monospaceWidth = size->GetCharInfo(L'_').advance;
-
-			Vector<TextVertex> vertices;
-			Vector2 pen;
-			for(wchar_t c : str)
-			{
-				const CharInfo& info = size->GetCharInfo(c);
-
-				if(info.coords.size.x != 0 && info.coords.size.y != 0)
-				{
-					Vector2 corners[4];
-					corners[0] = Vector2(0, 0);
-					corners[1] = Vector2((float)info.coords.size.x, 0);
-					corners[2] = Vector2((float)info.coords.size.x, (float)info.coords.size.y);
-					corners[3] = Vector2(0, (float)info.coords.size.y);
-
-					Vector2 offset = Vector2(pen.x, pen.y);
-					offset.x += info.leftOffset;
-					offset.y += nFontSize - info.topOffset;
-					if((options & TextOptions::Monospace) != 0)
-					{
-						offset.x += (monospaceWidth - info.coords.size.x) * 0.5f;
-					}
-					pen.x = floorf(pen.x);
-					pen.y = floorf(pen.y);
-
-					vertices.emplace_back(offset + corners[2],
-						corners[2] + info.coords.pos);
-					vertices.emplace_back(offset + corners[0],
-						corners[0] + info.coords.pos);
-					vertices.emplace_back(offset + corners[1],
-						corners[1] + info.coords.pos);
-
-					vertices.emplace_back(offset + corners[3],
-						corners[3] + info.coords.pos);
-					vertices.emplace_back(offset + corners[0],
-						corners[0] + info.coords.pos);
-					vertices.emplace_back(offset + corners[2],
-						corners[2] + info.coords.pos);
-				}
-
-				if(c == L'\n')
-				{
-					pen.x = 0.0f;
-					pen.y += size->lineHeight;
-					ret->size.y = pen.y;
-				}
-				else if(c == L'\t')
-				{
-					const CharInfo& space = size->GetCharInfo(L' ');
-					pen.x += space.advance * 3.0f;
-				}
-				else
-				{
-					if((options & TextOptions::Monospace) != 0)
-					{
-						pen.x += monospaceWidth;
-					}
-					else
-						pen.x += info.advance;
-				}
-				ret->size.x = std::max(ret->size.x, pen.x);
-			}
-
-			ret->size.y += size->lineHeight;
-
-			ret->fontSize = size;
-			ret->mesh->SetData(vertices);
-			ret->mesh->SetPrimitiveType(PrimitiveType::TriangleList);
-
-			Text textObj = Ref<TextRes>(ret);
-			// Insert into cache
-			size->cache.AddText(str, textObj);
-			return textObj;
-		}
-	 */
 }
