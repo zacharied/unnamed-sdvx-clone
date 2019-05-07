@@ -121,4 +121,38 @@ namespace Graphics
 		(*mesh)->SetPrimitiveType(PrimitiveType::TriangleList);
 		return std::move(*mesh);
 	}
+
+
+	void IMesh::GenerateSimpleXYQuad(Rect3D r, Rect uv, Vector<SimpleVertex>& out)
+	{
+		Vector<SimpleVertex> verts = { {{r.Left(),  r.Top(),    0.0f}, {uv.Left(),  uv.Top()}},
+									  {{r.Right(), r.Bottom(), 0.0f}, {uv.Right(), uv.Bottom()}},
+									  {{r.Right(), r.Top(),    0.0f}, {uv.Right(), uv.Top()}},
+
+									  {{r.Left(),  r.Top(),    0.0f}, {uv.Left(),  uv.Top()}},
+									  {{r.Left(),  r.Bottom(), 0.0f}, {uv.Left(),  uv.Bottom()}},
+									  {{r.Right(), r.Bottom(), 0.0f}, {uv.Right(), uv.Bottom()}}, };
+
+		for (auto& v : verts)
+		{
+			out.Add(v);
+		}
+	}
+
+	void IMesh::GenerateSimpleXZQuad(Rect3D r, Rect uv, Vector<SimpleVertex>& out)
+	{
+		Vector<SimpleVertex> verts = { {{r.Left(),  0.0f, r.Top(),},    {uv.Left(),  uv.Top()}},
+									  {{r.Right(), 0.0f, r.Bottom(),}, {uv.Right(), uv.Bottom()}},
+									  {{r.Right(), 0.0f, r.Top(),},    {uv.Right(), uv.Top()}},
+
+									  {{r.Left(),  0.0f, r.Top(),},    {uv.Left(),  uv.Top()}},
+									  {{r.Left(),  0.0f, r.Bottom(),}, {uv.Left(),  uv.Bottom()}},
+									  {{r.Right(), 0.0f, r.Bottom(),}, {uv.Right(), uv.Bottom()}}, };
+
+		for (auto& v : verts)
+		{
+			out.Add(v);
+		}
+	}
 }
+

@@ -4,7 +4,7 @@ class HealthGauge
 {
 public:
 	HealthGauge();
-	void Render(Mesh m, float deltaTime);
+	void Render(IMesh* m, float deltaTime);
 	Vector2 GetDesiredSize();
 
 	// The fill rate of the gauge
@@ -13,10 +13,10 @@ public:
 	Color upperColor = Colori(255, 102, 255);
 	Color lowerColor = Colori(0, 204, 255);
 
-	Material fillMaterial;
-	Material baseMaterial;
-	Texture frontTexture;
-	Texture fillTexture;
-	Texture backTexture;
-	Texture maskTexture;
+	unique_ptr<IMaterial> fillMaterial;
+	unique_ptr<IMaterial> baseMaterial;
+	unique_ptr<ITexture> frontTexture;
+	unique_ptr<ITexture> fillTexture;
+	unique_ptr<ITexture> backTexture;
+	unique_ptr<ITexture> maskTexture;
 };

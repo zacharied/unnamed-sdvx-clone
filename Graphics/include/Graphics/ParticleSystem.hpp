@@ -16,12 +16,12 @@ namespace Graphics
 		static auto Create() -> optional<unique_ptr<ParticleSystem>>;
 
 		// Create a new emitter
-		void AddEmitter(ParticleEmitter* emitter) override;
+		void AddEmitter(shared_ptr<ParticleEmitter> emitter) override;
 		void Render(const RenderState& rs, float deltaTime) override;
 		// Removes all active particle systems
 		void Reset() override;
 
 	private:
-		Vector<ParticleEmitter*> m_emitters;
+		Vector<shared_ptr<ParticleEmitter>> m_emitters;
 	};
 }

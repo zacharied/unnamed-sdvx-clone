@@ -192,17 +192,21 @@ namespace Graphics
 	bool Image::Load(const String& fullPath)
 	{
 		File f;
-		if(!f.OpenRead(fullPath))
+		if (!f.OpenRead(fullPath))
 			return false;
 
 		Buffer b;
 		b.resize(f.GetSize());
 		f.Read(b.data(), b.size());
-		if(b.size() < 4)
+		if (b.size() < 4)
 			return false;
 
-		// Check for PNG based on first 4 bytes
-		if(*(uint32*)b.data() == (uint32&)"�PNG")
+		// Check for PNG based on first 8 bytes
+		char pngSign[8] = { 137, 80, 78, 71, 13, 10, 26, 10 };
+		char firstEight[8];
+		memcpy(firstEight, b.data(), 8);
+
+		if (memcmp(pngSign, firstEight, 8) == 0)
 			return LoadPNG(b);
 		else // jay-PEG ?
 			return LoadJPEG(b);

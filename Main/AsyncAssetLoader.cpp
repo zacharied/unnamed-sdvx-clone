@@ -8,27 +8,28 @@ struct AsyncLoadOperation : public IAsyncLoadable
 };
 struct AsyncTextureLoadOperation : public AsyncLoadOperation
 {
-	Texture& target;
-	Image image;
-	AsyncTextureLoadOperation(Texture& target, const String& path) : target(target)
+	unique_ptr<ITexture>& target;
+	unique_ptr<IImage> image;
+	AsyncTextureLoadOperation(unique_ptr<ITexture>& target, const String& path) : target(target)
 	{
 		name = path;
 	}
 	bool AsyncLoad()
 	{
 		image = g_application->LoadImage(name);
-		return image.IsValid();
+		
+		return true;
 	}
 	bool AsyncFinalize()
 	{
-		target = TextureRes::Create(g_gl, image);
-		return target.IsValid();
+		target = std::move(*Texture::Create(*image));
+		return true;
 	}
 };
 struct AsyncMeshLoadOperation : public AsyncLoadOperation
 {
-	Mesh& target;
-	AsyncMeshLoadOperation(Mesh& target, const String& path) : target(target)
+	unique_ptr<IMesh>& target;
+	AsyncMeshLoadOperation(unique_ptr<IMesh>& target, const String& path) : target(target)
 	{
 	}
 	bool AsyncLoad()
@@ -44,8 +45,8 @@ struct AsyncMeshLoadOperation : public AsyncLoadOperation
 }; 
 struct AsyncMaterialLoadOperation : public AsyncLoadOperation
 {
-	Material& target;
-	AsyncMaterialLoadOperation(Material& target, const String& path) : target(target)
+	unique_ptr<IMaterial>& target;
+	AsyncMaterialLoadOperation(unique_ptr<IMaterial>& target, const String& path) : target(target)
 	{
 		name = path;
 	}
@@ -55,7 +56,8 @@ struct AsyncMaterialLoadOperation : public AsyncLoadOperation
 	}
 	bool AsyncFinalize()
 	{
-		return (target = g_application->LoadMaterial(name)).IsValid();
+		target = g_application->LoadMaterial(name);
+		return true;
 	}
 };
 struct AsyncWrapperOperation : public AsyncLoadOperation
@@ -97,15 +99,15 @@ AsyncAssetLoader::~AsyncAssetLoader()
 	delete m_impl;
 }
 
-void AsyncAssetLoader::AddTexture(Texture& out, const String& path)
+void AsyncAssetLoader::AddTexture(unique_ptr<ITexture>& out, const String& path)
 {
 	m_impl->loadables.Add(new AsyncTextureLoadOperation(out, path));
 }
-void AsyncAssetLoader::AddMesh(Mesh& out, const String& path)
+void AsyncAssetLoader::AddMesh(unique_ptr<IMesh>& out, const String& path)
 {
 	m_impl->loadables.Add(new AsyncMeshLoadOperation(out, path));
 }
-void AsyncAssetLoader::AddMaterial(Material& out, const String& path)
+void AsyncAssetLoader::AddMaterial(unique_ptr<IMaterial>& out, const String& path)
 {
 	m_impl->loadables.Add(new AsyncMaterialLoadOperation(out, path));
 }

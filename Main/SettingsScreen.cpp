@@ -89,8 +89,6 @@ private:
 	//Button* m_laserButtons[2];
 	//Panel* m_laserColorPanels[2];
 
-	Texture m_whiteTex;
-
 	int m_speedMod = 0;
 	int m_laserMode = 0;
 	int m_buttonMode = 0;
@@ -274,7 +272,7 @@ public:
 	//TODO: Controller support and the rest of the options and better layout
 	bool Init()
 	{
-		m_gamePads = g_gameWindow->GetGamepadDeviceNames();	
+		m_gamePads = g_input.GetGamepadDeviceNames();	
 		m_skins = Path::GetSubDirs("./skins/");
 
 		m_nctx = nk_sdl_init((SDL_Window*)g_gameWindow->Handle());
@@ -538,7 +536,7 @@ SettingsScreen* SettingsScreen::Create()
 class ButtonBindingScreen_Impl : public ButtonBindingScreen
 {
 private:
-	Ref<Gamepad> m_gamepad;
+	shared_ptr<Gamepad> m_gamepad;
 	//Label* m_prompt;
 	GameConfigKeys m_key;
 	bool m_isGamepad;
@@ -561,7 +559,7 @@ public:
 	{
 		if (m_isGamepad)
 		{
-			m_gamepad = g_gameWindow->OpenGamepad(m_gamepadIndex);
+			m_gamepad = g_input.OpenGamepad(m_gamepadIndex);
 			if (!m_gamepad)
 			{
 				Logf("Failed to open gamepad: %s", Logger::Error, m_gamepadIndex);
@@ -602,7 +600,7 @@ public:
 		if (m_completed && m_gamepad)
 		{
 			m_gamepad->OnButtonPressed.RemoveAll(this);
-			m_gamepad.Release();
+			m_gamepad.reset();
 
 			g_application->RemoveTickable(this);
 		}
@@ -628,7 +626,7 @@ public:
 		if (m_isGamepad)
 		{
 			prompt = "Press Button";
-			m_gamepad = g_gameWindow->OpenGamepad(m_gamepadIndex);
+			m_gamepad = g_input.OpenGamepad(m_gamepadIndex);
 			if (m_knobs)
 			{
 				prompt = "Turn Knob";

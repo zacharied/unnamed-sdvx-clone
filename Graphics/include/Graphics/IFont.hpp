@@ -26,7 +26,6 @@ namespace Graphics
 		};
 
 		// Renders the input string into a drawable text object
-		//virtual Ref<IText> CreateText(const WString& str, uint32 nFontSize, TextOptions options) = 0;
-		// unused ???
+		virtual unique_ptr<IText> CreateText(const WString& str, uint32 nFontSize, TextOptions options) = 0;
 	};
 }

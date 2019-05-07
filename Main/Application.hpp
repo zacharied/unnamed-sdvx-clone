@@ -58,13 +58,13 @@ public:
 #ifdef LoadImage
 #undef LoadImage
 #endif
-	Image LoadImage(const String& name);
-	Graphics::Image LoadImageExternal(const String & name);
-	Texture LoadTexture(const String& name);
-	Texture LoadTexture(const String & name, const bool& external);
-	Material LoadMaterial(const String& name);
+	unique_ptr<IImage> LoadImage(const String& name);
+	unique_ptr<IImage> LoadImageExternal(const String & name);
+	unique_ptr<ITexture> LoadTexture(const String& name);
+	unique_ptr<ITexture> LoadTexture(const String & name, const bool& external);
+	unique_ptr<IMaterial> LoadMaterial(const String& name);
 	Sample LoadSample(const String& name, const bool& external = false);
-	Graphics::Font LoadFont(const String& name, const bool& external = false);
+	shared_ptr<IFont> LoadFont(const String& name, const bool& external = false);
 	int LoadImageJob(const String& path, Vector2i size, int placeholder);
 	class lua_State* LoadScript(const String& name);
 	void ReloadScript(const String& name, lua_State* L);
@@ -73,7 +73,7 @@ public:
 	int FastText(String text, float x, float y, int size, int align);
 	float GetAppTime() const { return m_lastRenderTime; }
 	float GetRenderFPS() const;
-	Material GetFontMaterial() const;
+	shared_ptr<IMaterial> GetFontMaterial() const;
 	Transform GetGUIProjection() const;
 	void StoreNamedSample(String name, Sample sample);
 	void PlayNamedSample(String name, bool loop);
@@ -106,10 +106,10 @@ private:
 	RenderState m_renderStateBase;
 	RenderQueue m_renderQueueBase;
 	Vector<String> m_commandLine;
-	Map<String, Graphics::Font> m_fonts;
+	Map<String, shared_ptr<IFont>> m_fonts;
 	Map<String, Sample> m_samples;
-	Material m_fontMaterial;
-	Material m_fillMaterial;
+	shared_ptr<IMaterial> m_fontMaterial;
+	shared_ptr<IMaterial> m_fillMaterial;
 	class HealthGauge* m_gauge;
 	Map<String, CachedJacketImage*> m_jacketImages;
 	String m_lastMapPath;
@@ -135,7 +135,7 @@ public:
 	virtual bool Run();
 	virtual void Finalize();
 
-	Image loadedImage;
+	unique_ptr<IImage> loadedImage;
 	String imagePath;
 	int w = 0, h = 0;
 	Application::CachedJacketImage* target;

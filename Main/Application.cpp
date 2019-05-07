@@ -7,7 +7,8 @@
 #include "TitleScreen.hpp"
 #include <Audio/Audio.hpp>
 #include <Graphics/Window.hpp>
-#include <Graphics/ResourceManagers.hpp>
+#include <Graphics/Mesh.hpp>
+#include <Graphics/Image.hpp>
 #include "Shared/Jobs.hpp"
 #include <Shared/Profiling.hpp>
 #include "Scoring.hpp"
@@ -354,8 +355,12 @@ bool Application::m_Init()
 	m_skin = g_gameConfig.GetString(GameConfigKeys::Skin);
 
 	// Window cursor
-	Image cursorImg = ImageRes::Create("skins/" + m_skin + "/textures/cursor.png");
-	g_gameWindow->SetCursor(cursorImg, Vector2i(5, 5));
+	auto tempCur = Image::Create("skins/" + m_skin + "/textures/cursor.png");
+	if (tempCur)
+	{
+		unique_ptr<IImage> cursorImg = std::move(*tempCur);
+		g_gameWindow->SetCursor(*cursorImg.get(), Vector2i(5, 5));
+	}
 
 	if(startFullscreen)
 		g_gameWindow->SwitchFullscreen(
@@ -408,7 +413,7 @@ bool Application::m_Init()
 		ProfilerScope $1("GL Init");
 
 		// Create graphics context
-		g_gl = new OpenGL();
+		g_gl = &OpenGL::instance();
 		if(!g_gl->Init(*g_gameWindow, g_gameConfig.GetInt(GameConfigKeys::AntiAliasing)))
 		{
 			Log("Failed to create OpenGL context", Logger::Error);
@@ -538,14 +543,11 @@ void Application::m_MainLoop()
 			m_renderStateBase.time = currentTime;
 
 			// Also update window in render loop
-			if(!g_gameWindow->Update())
-				return;
+			//if(!g_gameWindow->Update())
+			//	return;
 
 			m_Tick();
 			timeSinceRender = 0.0f;
-
-			// Garbage collect resources
-			ResourceManagers::TickAll();
 		}
 
 		// Tick job sheduler
@@ -578,11 +580,11 @@ void Application::m_Tick()
 		glClearColor(0, 0, 0, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		nvgBeginFrame(g_guiState.vg, g_resolution.x, g_resolution.y, 1);
-		m_renderQueueBase = RenderQueue(g_gl, m_renderStateBase);
+		m_renderQueueBase = RenderQueue(m_renderStateBase);
 		g_guiState.rq = &m_renderQueueBase;
 		g_guiState.t = Transform();
-		g_guiState.fontMaterial = &m_fontMaterial;
-		g_guiState.fillMaterial = &m_fillMaterial;
+		g_guiState.fontMaterial = m_fontMaterial;
+		g_guiState.fillMaterial = m_fillMaterial;
 		g_guiState.resolution = g_resolution;
 
 		if (g_gameConfig.GetBool(GameConfigKeys::ForcePortrait))
@@ -711,50 +713,57 @@ RenderQueue* Application::GetRenderQueueBase()
 	return &m_renderQueueBase;
 }
 
-Graphics::Image Application::LoadImage(const String& name)
+unique_ptr<IImage> Application::LoadImage(const String& name)
 {
 	String path = String("skins/") + m_skin + String("/textures/") + name;
-	return ImageRes::Create(path);
+	auto img = Image::Create(path);
+	assert(img);
+	return std::move(*img);
 }
 
-Graphics::Image Application::LoadImageExternal(const String& name)
+unique_ptr<IImage> Application::LoadImageExternal(const String& name)
 {
-	return ImageRes::Create(name);
+	auto img = Image::Create(name);
+	assert(img);
+	return std::move(*img);
 }
-Texture Application::LoadTexture(const String& name)
+unique_ptr<ITexture> Application::LoadTexture(const String& name)
 {
-	Texture ret = TextureRes::Create(g_gl, LoadImage(name));
-	return ret;
+	auto ret = Texture::Create(*LoadImage(name));
+	assert(ret);
+	return std::move(*ret);
 }
 
-Texture Application::LoadTexture(const String& name, const bool& external)
+unique_ptr<ITexture> Application::LoadTexture(const String& name, const bool& external)
 {
 	if (external)
 	{
-		Texture ret = TextureRes::Create(g_gl, LoadImageExternal(name));
-		return ret;
+		auto ret = Texture::Create(*LoadImageExternal(name));
+		assert(ret);
+		return std::move(*ret);
 	}
 	else
 	{
-		Texture ret = TextureRes::Create(g_gl, LoadImage(name));
-		return ret;
+		auto ret = Texture::Create(*LoadImage(name));
+		assert(ret);
+		return std::move(*ret);
 	}
 }
-Material Application::LoadMaterial(const String& name)
+unique_ptr<IMaterial> Application::LoadMaterial(const String& name)
 {
 	String pathV = String("skins/") + m_skin + String("/shaders/") + name + ".vs";
 	String pathF = String("skins/") + m_skin + String("/shaders/") + name + ".fs";
 	String pathG = String("skins/") + m_skin + String("/shaders/") + name + ".gs";
-	Material ret = MaterialRes::Create(g_gl, pathV, pathF);
+	auto ret = Material::Create(pathV, pathF);
+	assert(ret);
 	// Additionally load geometry shader
 	if(Path::FileExists(pathG))
 	{
-		Shader gshader = ShaderRes::Create(g_gl, ShaderType::Geometry, pathG);
+		unique_ptr<IShader> gshader = Shader::Create(ShaderType::Geometry, pathG).value();
 		assert(gshader);
-		ret->AssignShader(ShaderType::Geometry, gshader);
+		(*ret)->AssignShader(std::move(gshader));
 	}
-	assert(ret);
-	return ret;
+	return std::move(*ret);
 }
 Sample Application::LoadSample(const String& name, const bool& external)
 {
@@ -773,11 +782,11 @@ Sample Application::LoadSample(const String& name, const bool& external)
 	return ret;
 }
 
-Graphics::Font Application::LoadFont(const String & name, const bool & external)
+shared_ptr<IFont> Application::LoadFont(const String & name, const bool & external)
 {
-	Graphics::Font* cached = m_fonts.Find(name);
+	auto cached = m_fonts[name];
 	if (cached)
-		return *cached;
+		return cached;
 
 	String path;
 	if (external)
@@ -785,9 +794,10 @@ Graphics::Font Application::LoadFont(const String & name, const bool & external)
 	else
 		path = String("skins/") + m_skin + String("/fonts/") + name;
 
-	Graphics::Font newFont = FontRes::Create(g_gl, path);
-	m_fonts.Add(name, newFont);
-	return newFont;
+	auto newFont = Font::Create(path);
+	assert(newFont);
+	m_fonts.Add(name, std::move(*newFont));
+	return m_fonts[name];
 }
 
 int Application::LoadImageJob(const String & path, Vector2i size, int placeholder)
@@ -977,8 +987,8 @@ void Application::LoadGauge(bool hard)
 void Application::DrawGauge(float rate, float x, float y, float w, float h, float deltaTime)
 {
 	m_gauge->rate = rate;
-	Mesh m = MeshGenerators::Quad(g_gl, Vector2(x, y), Vector2(w, h));
-	m_gauge->Render(m, deltaTime);
+	auto m = Mesh::GenerateQuad(Vector2(x, y), Vector2(w, h));
+	m_gauge->Render(m.get(), deltaTime);
 }
 
 float Application::GetRenderFPS() const
@@ -986,7 +996,7 @@ float Application::GetRenderFPS() const
 	return 1.0f / g_avgRenderDelta;
 }
 
-Material Application::GetFontMaterial() const
+shared_ptr<IMaterial> Application::GetFontMaterial() const
 {
 	return m_fontMaterial;
 }
@@ -1012,7 +1022,7 @@ void Application::m_OnKeyPressed(int32 key)
 	// Fullscreen toggle
 	if(key == SDLK_RETURN)
 	{
-		if((g_gameWindow->GetModifierKeys() & ModifierKeys::Alt) == ModifierKeys::Alt)
+		if((g_input.GetModifierKeys() & ModifierKeys::Alt) == ModifierKeys::Alt)
 		{
 			g_gameWindow->SwitchFullscreen(
 				g_gameConfig.GetInt(GameConfigKeys::ScreenWidth), g_gameConfig.GetInt(GameConfigKeys::ScreenHeight),
@@ -1093,33 +1103,33 @@ void Application::m_OnWindowResized(const Vector2i& newSize)
 int Application::FastText(String inputText, float x, float y, int size, int align)
 {
 	WString text = Utility::ConvertToWString(inputText);
-	Text te = g_application->LoadFont("segoeui.ttf")->CreateText(text, size);
+	auto te = g_application->LoadFont("segoeui.ttf")->CreateText(text, size, IFont::TextOptions::None);
 	Transform textTransform;
 	textTransform *= Transform::Translation(Vector2(x, y));
 
 	//vertical alignment
 	if ((align & (int)NVGalign::NVG_ALIGN_BOTTOM) != 0)
 	{
-		textTransform *= Transform::Translation(Vector2(0, -te->size.y));
+		textTransform *= Transform::Translation(Vector2(0, -te->GetSize().y));
 	}
 	else if ((align & (int)NVGalign::NVG_ALIGN_MIDDLE) != 0)
 	{
-		textTransform *= Transform::Translation(Vector2(0, -te->size.y / 2));
+		textTransform *= Transform::Translation(Vector2(0, -te->GetSize().y / 2));
 	}
 
 	//horizontal alignment
 	if ((align & (int)NVGalign::NVG_ALIGN_CENTER) != 0)
 	{
-		textTransform *= Transform::Translation(Vector2(-te->size.x / 2, 0));
+		textTransform *= Transform::Translation(Vector2(-te->GetSize().x / 2, 0));
 	}
 	else if ((align & (int)NVGalign::NVG_ALIGN_RIGHT) != 0)
 	{
-		textTransform *= Transform::Translation(Vector2(-te->size.x, 0));
+		textTransform *= Transform::Translation(Vector2(-te->GetSize().x, 0));
 	}
 
 	MaterialParameterSet params;
 	params.SetParameter("color", Vector4(1.f, 1.f, 1.f, 1.f));
-	g_application->GetRenderQueueBase()->Draw(textTransform, te, g_application->GetFontMaterial(), params);
+	g_application->GetRenderQueueBase()->Draw(textTransform, te.get(), g_application->GetFontMaterial().get(), params);
 	return 0;
 }
 
@@ -1487,13 +1497,19 @@ void Application::m_SetNvgLuaBindings(lua_State * state)
 bool JacketLoadingJob::Run()
 {
 	// Create loading task
-	loadedImage = ImageRes::Create(imagePath);
-	if (loadedImage.IsValid()) {
+	auto img = Image::Create(imagePath);
+	if (img) 
+	{
+		loadedImage = std::move(*img);
 		if (loadedImage->GetSize().x > w || loadedImage->GetSize().y > h) {
 			loadedImage->ReSize({ w,h });
 		}
 	}
-	return loadedImage.IsValid();
+	else
+	{
+		return false;
+	}
+	return true;
 }
 void JacketLoadingJob::Finalize()
 {

@@ -25,14 +25,14 @@
 
 // Graphics components
 #include <Graphics/OpenGL.hpp>
-#include <Graphics/Image.hpp>
-#include <Graphics/Texture.hpp>
-#include <Graphics/Material.hpp>
-#include <Graphics/Mesh.hpp>
+#include <Graphics/IImage.hpp>
+#include <Graphics/ITexture.hpp>
+#include <Graphics/IMaterial.hpp>
+#include <Graphics/IMesh.hpp>
 #include <Graphics/RenderQueue.hpp>
 #include <Graphics/RenderState.hpp>
-#include <Graphics/ParticleSystem.hpp>
-#include <Graphics/Font.hpp>
+#include <Graphics/IParticleSystem.hpp>
+#include <Graphics/IFont.hpp>
 using namespace Graphics;
 
 // Asset loading macro

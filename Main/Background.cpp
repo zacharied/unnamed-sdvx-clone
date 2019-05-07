@@ -6,6 +6,7 @@
 #include "Game.hpp"
 #include "Track.hpp"
 #include "Camera.hpp"
+#include "Graphics/Mesh.hpp"
 
 /* Background template for fullscreen effects */
 class FullscreenBackground : public Background
@@ -13,7 +14,7 @@ class FullscreenBackground : public Background
 public:
 	virtual bool Init(bool foreground) override
 	{
-		fullscreenMesh = MeshGenerators::Quad(g_gl, Vector2(-1.0f), Vector2(2.0f));
+		fullscreenMesh = Mesh::GenerateQuad(Vector2(-1.0f), Vector2(2.0f));
 		this->foreground = foreground;
 		return true;
 	}
@@ -26,16 +27,16 @@ public:
 		assert(fullscreenMaterial);
 
 		// Render a fullscreen quad
-		RenderQueue rq(g_gl, renderState);
-		rq.Draw(Transform(), fullscreenMesh, fullscreenMaterial, fullscreenMaterialParams);
+		RenderQueue rq(renderState);
+		rq.Draw(Transform(), fullscreenMesh.get(), fullscreenMaterial.get(), fullscreenMaterialParams);
 		rq.Process();
 	}
 
 	RenderState renderState;
-	Mesh fullscreenMesh;
-	Material fullscreenMaterial;
-	Texture backgroundTexture;
-	Texture frameBufferTexture;
+	unique_ptr<IMesh> fullscreenMesh;
+	unique_ptr<IMaterial> fullscreenMaterial;
+	unique_ptr<ITexture> backgroundTexture;
+	unique_ptr<ITexture> frameBufferTexture;
 	MaterialParameterSet fullscreenMaterialParams;
 	float clearTransition = 0.0f;
 	float offsyncTimer = 0.0f;
@@ -55,7 +56,7 @@ class TestBackground : public FullscreenBackground
 		String matPath = "";
 		if (foreground)
 		{
-			frameBufferTexture = TextureRes::CreateFromFrameBuffer(g_gl, g_resolution);
+			frameBufferTexture = *Texture::Create(g_resolution);
 			matPath = game->GetBeatmap()->GetMapSettings().foregroundPath;
 			String texPath = "textures/fg_texture.png";
 			if (matPath.length() > 3 && matPath.substr(matPath.length() - 3, 3) == ".fs")
@@ -129,43 +130,36 @@ class TestBackground : public FullscreenBackground
 		float tilt = game->GetCamera().GetActualRoll() + game->GetCamera().GetBackgroundSpin();
 		fullscreenMaterialParams.SetParameter("clearTransition", clearTransition);
 		fullscreenMaterialParams.SetParameter("tilt", tilt);
-		fullscreenMaterialParams.SetParameter("mainTex", backgroundTexture);
+		fullscreenMaterialParams.SetParameter("mainTex", backgroundTexture.get());
 		fullscreenMaterialParams.SetParameter("screenCenter", screenCenter);
 		fullscreenMaterialParams.SetParameter("timing", timing);
 		if (foreground)
 		{
-			frameBufferTexture->SetFromFrameBuffer();
-			fullscreenMaterialParams.SetParameter("fb_tex", frameBufferTexture);
+			frameBufferTexture->SetFromFrameBuffer({0,0});
+			fullscreenMaterialParams.SetParameter("fb_tex", frameBufferTexture.get());
 		}
 
 		FullscreenBackground::Render(deltaTime);
 	}
 
 
-	Material LoadBackgroundMaterial(const String& path)
+	unique_ptr<IMaterial> LoadBackgroundMaterial(const String& path)
 	{
 		String skin = g_gameConfig.GetString(GameConfigKeys::Skin);
 		String pathV = String("skins/" + skin + "/shaders/") + "background" + ".vs";
 		String pathF = path;
 		String pathG = String("skins/" + skin + "/shaders/") + "background" + ".gs";
-		Material ret = MaterialRes::Create(g_gl, pathV, pathF);
+		auto ret = Material::Create(pathV, pathF);
+		assert(ret);
 		// Additionally load geometry shader
 		if (Path::FileExists(pathG))
 		{
-			Shader gshader = ShaderRes::Create(g_gl, ShaderType::Geometry, pathG);
+			auto gshader = Shader::Create(ShaderType::Geometry, pathG);
 			assert(gshader);
-			ret->AssignShader(ShaderType::Geometry, gshader);
+			(*ret)->AssignShader(std::move(*gshader));
 		}
-		assert(ret);
-		return ret;
+		return std::move(*ret);
 	}
-
-	Texture LoadBackgroundTexture(const String& path)
-	{
-		Texture ret = TextureRes::Create(g_gl, ImageRes::Create(path));
-		return ret;
-	}
-
 };
 
 

@@ -65,7 +65,7 @@ public:
 	{
 		if (key == SDLK_v)
 		{
-			if (g_gameWindow->GetModifierKeys() == ModifierKeys::Ctrl)
+			if (g_input.GetModifierKeys() == ModifierKeys::Ctrl)
 			{
 				if (g_gameWindow->GetTextComposition().composition.empty())
 				{
@@ -1155,7 +1155,7 @@ public:
 			}
 			else
 			{
-				bool autoplay = (g_gameWindow->GetModifierKeys() & ModifierKeys::Ctrl) == ModifierKeys::Ctrl;
+				bool autoplay = (g_input.GetModifierKeys() & ModifierKeys::Ctrl) == ModifierKeys::Ctrl;
 				MapIndex* map = m_selectionWheel->GetSelection();
 				if (map)
 				{

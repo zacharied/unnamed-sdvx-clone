@@ -47,11 +47,8 @@ public:
 	void DrawObjectState(RenderQueue& rq, class BeatmapPlayback& playback, ObjectState* obj, bool active = false);
 	// Things like the laser pointers, hit bar and effect
 	void DrawOverlays(RenderQueue& rq);
-	// Draws a plane over the track
-	void DrawTrackOverlay(RenderQueue& rq, Texture texture, float heightOffset = 0.05f, float widthScale = 1.0f);
 	// Draw a centered sprite at pos, relative from the track
-	void DrawSprite(RenderQueue& rq, Vector3 pos, Vector2 size, Texture tex, Color color = Color::White, float tilt = 0.0f);
-	void DrawCombo(RenderQueue& rq, uint32 score, Color color, float scale = 1.0f);
+	void DrawSprite(RenderQueue& rq, Vector3 pos, Vector2 size, ITexture* tex, Color color = Color::White, float tilt = 0.0f);
 
 	Vector3 TransformPoint(const Vector3& p);
 
@@ -82,38 +79,38 @@ public:
 	Vector2 trackViewRange;
 
 	/* Track base graphics */
-	Mesh trackMesh;
-	Mesh trackTickMesh;
-	Material trackMaterial; // Also used for buttons
-	Texture trackTexture;
-	Texture trackTickTexture;
+	unique_ptr<IMesh> trackMesh;
+	unique_ptr<IMesh> trackTickMesh;
+	unique_ptr<IMaterial> trackMaterial; // Also used for buttons
+	unique_ptr<ITexture> trackTexture;
+	unique_ptr<ITexture> trackTickTexture;
 
 	/* Object graphics */
-	Mesh buttonMesh;
-	Texture buttonTexture;
-	Texture buttonHoldTexture;
-	Mesh fxbuttonMesh;
-	Texture fxbuttonTexture;
-	Texture fxbuttonHoldTexture;
-	Material holdButtonMaterial;
-	Material buttonMaterial;
-	Texture laserTextures[2];
-	Texture laserTailTextures[4]; // Entry and exit textures, both sides
-	Material laserMaterial;
-	Material blackLaserMaterial;
-	Texture laserAlertTextures[2];
+	unique_ptr<IMesh> buttonMesh;
+	unique_ptr<ITexture> buttonTexture;
+	unique_ptr<ITexture> buttonHoldTexture;
+	unique_ptr<IMesh> fxbuttonMesh;
+	unique_ptr<ITexture> fxbuttonTexture;
+	unique_ptr<ITexture> fxbuttonHoldTexture;
+	unique_ptr<IMaterial> holdButtonMaterial;
+	unique_ptr<IMaterial> buttonMaterial;
+	unique_ptr<ITexture> laserTextures[2];
+	unique_ptr<ITexture> laserTailTextures[4]; // Entry and exit textures, both sides
+	unique_ptr<IMaterial> laserMaterial;
+	unique_ptr<IMaterial> blackLaserMaterial;
+	unique_ptr<ITexture> laserAlertTextures[2];
 
 	/* Overlay graphics */
-	Material trackOverlay;
+	unique_ptr<IMaterial> trackOverlay;
 
 	/* Scoring and feedback elements */
-	Texture scoreHitTexture;
-	Texture scoreHitTextures[3]; // Ok, Miss, Perfect
+	unique_ptr<ITexture> scoreHitTexture;
+	unique_ptr<ITexture> scoreHitTextures[3]; // Ok, Miss, Perfect
 	// Combo counter sprite sheet
-	Mesh comboSpriteMeshes[10];
+	unique_ptr<IMesh> comboSpriteMeshes[10];
 	/* Reusable sprite mesh and material */
-	Mesh centeredTrackMesh;
-	Material spriteMaterial;
+	unique_ptr<IMesh> centeredTrackMesh;
+	unique_ptr<IMaterial> spriteMaterial;
 
 	// For flickering objects, like hold objects that are active
 	float objectGlow;

@@ -38,7 +38,7 @@ namespace Graphics
 		}
 	}
 
-	void ParticleSystem::AddEmitter(ParticleEmitter* emitter)
+	void ParticleSystem::AddEmitter(shared_ptr<ParticleEmitter> emitter)
 	{
 		m_emitters.Add(emitter);
 	}

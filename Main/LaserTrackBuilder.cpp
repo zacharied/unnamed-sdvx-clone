@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "LaserTrackBuilder.hpp"
 #include <Beatmap/BeatmapPlayback.hpp>
+#include "Graphics/Mesh.hpp"
 #include "Track.hpp"
 #include <algorithm>
 
@@ -19,12 +20,12 @@ LaserTrackBuilder::LaserTrackBuilder(class OpenGL* gl, class Track* track, uint3
 	laserEntryTextureSize = track->laserTailTextures[0]->GetSize();
 	laserExitTextureSize = track->laserTailTextures[1]->GetSize();
 }
-Mesh LaserTrackBuilder::GenerateTrackMesh(class BeatmapPlayback& playback, LaserObjectState* laser)
+shared_ptr<IMesh> LaserTrackBuilder::GenerateTrackMesh(class BeatmapPlayback& playback, LaserObjectState* laser)
 {
 	if(m_objectCache.Contains(laser))
 		return m_objectCache[laser];
 
-	Mesh newMesh = MeshRes::Create(m_gl);
+	shared_ptr<IMesh> newMesh = *Mesh::Create();
 
 	float length = playback.DurationToViewDistanceAtTime(laser->time, laser->duration);
 
@@ -76,7 +77,7 @@ Mesh LaserTrackBuilder::GenerateTrackMesh(class BeatmapPlayback& playback, Laser
 		Rect3D centerTop = centerBottom;
 		centerTop.pos.y = centerMiddle.Top();
 
-		Vector<MeshGenerators::SimpleVertex> verts =
+		Vector<SimpleVertex> verts =
 		{
 			{ { centerMiddle.Left() + offsetB, centerMiddle.Bottom(),  0.0f },{ uvB, 0.0f } }, // BL
 			{ { centerMiddle.Right() + offsetB, centerMiddle.Bottom(),  0.0f },{ uvB, 1.0f } }, // BR
@@ -101,7 +102,7 @@ Mesh LaserTrackBuilder::GenerateTrackMesh(class BeatmapPlayback& playback, Laser
 
 			Rect sideUv = Rect(0.0f, textureBorder, textureBorder, invTextureBorder);
 			Rect capUv = Rect(0.0f, 0.0f, invTextureBorder, textureBorder); // Cap at the top
-			Vector<MeshGenerators::SimpleVertex> leftVerts;
+			Vector<SimpleVertex> leftVerts;
 			if(swapped)
 			{
 				capUv = Rect(0.0f, invTextureBorder, invTextureBorder, 1.0f); // Cap at the bottom
@@ -142,7 +143,7 @@ Mesh LaserTrackBuilder::GenerateTrackMesh(class BeatmapPlayback& playback, Laser
 
 			Rect sideUv = Rect(invTextureBorder, textureBorder, 1.0f, invTextureBorder);
 			Rect capUv = Rect(textureBorder, invTextureBorder, 1.0f, 1.0f); // Cap at the bottom
-			Vector<MeshGenerators::SimpleVertex> rightVerts;
+			Vector<SimpleVertex> rightVerts;
 			if(swapped)
 			{
 				capUv = Rect(textureBorder, 0.0f, 1.0f, textureBorder); // Cap at the top
@@ -199,7 +200,7 @@ Mesh LaserTrackBuilder::GenerateTrackMesh(class BeatmapPlayback& playback, Laser
 		float vMax = (int)((length * laserLengthScale) / actualLaserHeight);
 
 		float halfWidth = actualLaserWidth * 0.5f;
-		Vector<MeshGenerators::SimpleVertex> verts =
+		Vector<SimpleVertex> verts =
 		{
 			{ { points[0].x - halfWidth, points[0].y,  0.0f },{ uMin, vMax } }, // BL
 			{ { points[0].x + halfWidth, points[0].y,  0.0f },{ uMax, vMax } }, // BR
@@ -220,13 +221,13 @@ Mesh LaserTrackBuilder::GenerateTrackMesh(class BeatmapPlayback& playback, Laser
 	return newMesh;
 }
 
-Mesh LaserTrackBuilder::GenerateTrackEntry(class BeatmapPlayback& playback, LaserObjectState* laser)
+shared_ptr<IMesh> LaserTrackBuilder::GenerateTrackEntry(class BeatmapPlayback& playback, LaserObjectState* laser)
 {
 	assert(laser->prev == nullptr);
 	if(m_cachedEntries.Contains(laser))
 		return m_cachedEntries[laser];
 
-	Mesh newMesh = MeshRes::Create(m_gl);
+	shared_ptr<IMesh> newMesh = *Mesh::Create();
 
 	// Starting point of laser
 	float startingX = laser->points[0] * effectiveWidth - effectiveWidth * 0.5f;
@@ -239,10 +240,10 @@ Mesh LaserTrackBuilder::GenerateTrackEntry(class BeatmapPlayback& playback, Lase
 	float length = (float)laserEntryTextureSize.y / (float)laserEntryTextureSize.x * actualLaserWidth;
 
 	float halfWidth = actualLaserWidth * 0.5f;
-	Vector<MeshGenerators::SimpleVertex> verts;
+	Vector<SimpleVertex> verts;
 	Rect3D pos = Rect3D(Vector2(startingX - halfWidth, -length), Vector2(halfWidth * 2, length));
 	Rect uv = Rect(0.0f, 0.0f, 1.0f, 1.0f);
-	MeshGenerators::GenerateSimpleXYQuad(pos, uv, verts);
+	IMesh::GenerateSimpleXYQuad(pos, uv, verts);
 
 	newMesh->SetData(verts);
 	newMesh->SetPrimitiveType(PrimitiveType::TriangleList);
@@ -252,13 +253,13 @@ Mesh LaserTrackBuilder::GenerateTrackEntry(class BeatmapPlayback& playback, Lase
 	return newMesh;
 
 }
-Mesh LaserTrackBuilder::GenerateTrackExit(class BeatmapPlayback& playback, LaserObjectState* laser)
+shared_ptr<IMesh> LaserTrackBuilder::GenerateTrackExit(class BeatmapPlayback& playback, LaserObjectState* laser)
 {
 	assert(laser->next == nullptr);
 	if(m_cachedExits.Contains(laser))
 		return m_cachedExits[laser];
 
-	Mesh newMesh = MeshRes::Create(m_gl);
+	shared_ptr<IMesh> newMesh = *Mesh::Create();
 
 	// Ending point of laser 
 	float startingX = laser->points[1] * effectiveWidth - effectiveWidth * 0.5f;
@@ -280,10 +281,10 @@ Mesh LaserTrackBuilder::GenerateTrackExit(class BeatmapPlayback& playback, Laser
 	}
 
 	float halfWidth = actualLaserWidth * 0.5f;
-	Vector<MeshGenerators::SimpleVertex> verts;
+	Vector<SimpleVertex> verts;
 	Rect3D pos = Rect3D(Vector2(startingX - halfWidth, prevLength), Vector2(halfWidth * 2, length));
 	Rect uv = Rect(0.0f, 0.0f, 1.0f, 1.0f);
-	MeshGenerators::GenerateSimpleXYQuad(pos, uv, verts);
+	IMesh::GenerateSimpleXYQuad(pos, uv, verts);
 
 	newMesh->SetData(verts);
 	newMesh->SetPrimitiveType(PrimitiveType::TriangleList);
@@ -326,7 +327,7 @@ void LaserTrackBuilder::m_RecalculateConstants()
 	effectiveWidth = m_trackWidth - m_laserWidth;
 }
 
-void LaserTrackBuilder::m_Cleanup(MapTime newTime, Map<LaserObjectState*, Mesh>& arr)
+void LaserTrackBuilder::m_Cleanup(MapTime newTime, Map<LaserObjectState*, shared_ptr<IMesh>>& arr)
 {
 	// Cleanup unused meshes
 	for(auto it = arr.begin(); it != arr.end();)

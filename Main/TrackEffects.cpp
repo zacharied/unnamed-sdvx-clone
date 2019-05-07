@@ -41,7 +41,7 @@ void ButtonHitEffect::Draw(class RenderQueue& rq)
 	hitEffectSize.y = track->scoreHitTexture->CalculateHeight(hitEffectSize.x) * yMult;
 	Color c{color, GetRate()};
 	c.w *= yMult / 2.f;
-	track->DrawSprite(rq, Vector3(x, hitEffectSize.y * 0.5f, 0.0f), hitEffectSize, track->scoreHitTexture, c);
+	track->DrawSprite(rq, Vector3(x, hitEffectSize.y * 0.5f, 0.0f), hitEffectSize, track->scoreHitTexture.get(), c);
 }
 
 ButtonHitRatingEffect::ButtonHitRatingEffect(uint32 buttonCode, ScoreHitRating rating) : TimedEffect(0.3f), buttonCode(buttonCode), rating(rating)
@@ -77,7 +77,7 @@ void ButtonHitRatingEffect::Draw(class RenderQueue& rq)
 
 	if(on == 1)
 	{
-		Texture hitTexture = track->scoreHitTextures[(size_t)rating];
+		ITexture* hitTexture = track->scoreHitTextures[(size_t)rating].get();
 
 		// Shrink
 		float t = GetRate();
@@ -113,7 +113,7 @@ void TimedHitEffect::Draw(class RenderQueue& rq)
 	if (on == 1)
 	{
 		//Texture hitTexture = track->scoreTimeTextures[late ? 1 : 0];
-		Texture hitTexture = track->scoreHitTextures[late ? 1 : 0];
+		ITexture* hitTexture = track->scoreHitTextures[late ? 1 : 0].get();
 
 		// Size of effect
 		Vector2 hitEffectSize = Vector2(track->buttonWidth * 2.f, 0.0f);

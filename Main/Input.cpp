@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Input.hpp"
 #include "GameConfig.hpp"
+#include "Gamepad/Gamepad_Impl.hpp"
 
 Input::~Input()
 {
@@ -13,10 +14,6 @@ void Input::Init(Graphics::Window& wnd)
 {
 	Cleanup();
 	m_window = &wnd;
-	m_window->OnKeyPressed.Add(this, &Input::OnKeyPressed);
-	m_window->OnKeyReleased.Add(this, &Input::OnKeyReleased);
-	m_window->OnMouseMotion.Add(this, &Input::OnMouseMotion);
-
 
 	m_lastMousePos[0] = m_window->GetMousePos().x;
 	m_lastMousePos[1] = m_window->GetMousePos().y;
@@ -37,17 +34,17 @@ void Input::Init(Graphics::Window& wnd)
 	m_controllerDeadzone = g_gameConfig.GetFloat(GameConfigKeys::Controller_Deadzone);
 
 	// Init controller mapping
-	if(m_laserDevice == InputDevice::Controller || m_buttonDevice == InputDevice::Controller)
+	if (m_laserDevice == InputDevice::Controller || m_buttonDevice == InputDevice::Controller)
 	{
 		int32 deviceIndex = g_gameConfig.GetInt(GameConfigKeys::Controller_DeviceID);
-		if(deviceIndex >= m_window->GetNumGamepads())
+		if (deviceIndex >= GetNumGamepads())
 		{
-			Logf("Out of range controller [%d], number of available controllers is %d", Logger::Error, deviceIndex, m_window->GetNumGamepads());
+			Logf("Out of range controller [%d], number of available controllers is %d", Logger::Error, deviceIndex, GetNumGamepads());
 		}
 		else
 		{
-			m_gamepad = m_window->OpenGamepad(deviceIndex);
-			if(m_gamepad)
+			m_gamepad = OpenGamepad(deviceIndex);
+			if (m_gamepad)
 			{
 				m_gamepad->OnButtonPressed.Add(this, &Input::m_OnGamepadButtonPressed);
 				m_gamepad->OnButtonReleased.Add(this, &Input::m_OnGamepadButtonReleased);
@@ -61,26 +58,15 @@ void Input::Init(Graphics::Window& wnd)
 }
 void Input::Cleanup()
 {
-	if(m_gamepad)
-	{
-		m_gamepad->OnButtonPressed.RemoveAll(this);
-		m_gamepad->OnButtonReleased.RemoveAll(this);
-		m_gamepad.Release();
-	}
-	if(m_window)
-	{
-		m_window->OnKeyPressed.RemoveAll(this);
-		m_window->OnKeyReleased.RemoveAll(this);
-		m_window->OnMouseMotion.RemoveAll(this);
-		m_window = nullptr;
-	}
+	m_window = nullptr;
 }
 
 void Input::Update(float deltaTime)
 {
-	for(auto it = m_mouseLocks.begin(); it != m_mouseLocks.end();)
+	m_SdlPollEvents();
+	for (auto it = m_mouseLocks.begin(); it != m_mouseLocks.end();)
 	{
-		if(it->GetRefCount() == 1)
+		if (it->GetRefCount() == 1)
 		{
 			it = m_mouseLocks.erase(it);
 			continue;
@@ -88,7 +74,7 @@ void Input::Update(float deltaTime)
 		it++;
 	}
 
-	if(!m_mouseLocks.empty())
+	if (!m_mouseLocks.empty())
 	{
 		if (!m_window->GetRelativeMouseMode())
 			m_window->SetRelativeMouseMode(true);
@@ -98,25 +84,25 @@ void Input::Update(float deltaTime)
 		m_window->SetRelativeMouseMode(false);
 	}
 
-	if(m_laserDevice == InputDevice::Mouse)
+	if (m_laserDevice == InputDevice::Mouse)
 	{
-		for(uint32 i = 0; i < 2; i++)
+		for (uint32 i = 0; i < 2; i++)
 		{
-			if(m_mouseAxisMapping[i] < 0 || m_mouseAxisMapping[i] > 1)
+			if (m_mouseAxisMapping[i] < 0 || m_mouseAxisMapping[i] > 1)
 			{
 				// INVALID MAPPING
 				m_laserStates[i] = 0.0f;
 				continue;
 			}
-			
+
 			m_laserStates[i] = m_mouseSensitivity * m_mousePos[m_mouseAxisMapping[i]];
 			m_mousePos[m_mouseAxisMapping[i]] = 0;
 		}
 	}
 
-	if(m_laserDevice == InputDevice::Keyboard)
+	if (m_laserDevice == InputDevice::Keyboard)
 	{
-		for(uint32 i = 0; i < 2; i++)
+		for (uint32 i = 0; i < 2; i++)
 		{
 			m_laserStates[i] = m_rawKeyLaserStates[i] * deltaTime;
 
@@ -140,12 +126,12 @@ void Input::Update(float deltaTime)
 	}
 
 
-	if(m_gamepad)
+	if (m_gamepad)
 	{
 		// Poll controller laser input
-		if(m_laserDevice == InputDevice::Controller)
+		if (m_laserDevice == InputDevice::Controller)
 		{
-			for(uint32 i = 0; i < 2; i++)
+			for (uint32 i = 0; i < 2; i++)
 			{
 				float axisState = m_gamepad->GetAxis(m_controllerAxisMapping[i]);
 				float delta = axisState - m_prevLaserStates[i];
@@ -184,17 +170,71 @@ bool Input::Are3BTsHeld() const
 	return (bta && btb && btc) || (bta && btb && btd) || (bta && btc && btd) || (btb && btc && btd);
 }
 
+int Input::GetNumGamepads() const
+{
+	return SDL_NumJoysticks();
+}
+
+shared_ptr<Gamepad> Input::OpenGamepad(int deviceIndex)
+{
+	auto openGamepad = m_gamepads.find(deviceIndex);
+	if (openGamepad != m_gamepads.end())
+		return openGamepad->second;
+
+	shared_ptr<Gamepad_Impl> newGamepad = make_shared<Gamepad_Impl>();
+	// Try to initialize new device
+	if (newGamepad->Init(m_window, deviceIndex))
+	{
+		// Receive joystick events
+		SDL_JoystickEventState(SDL_ENABLE);
+	}
+	else
+	{
+		newGamepad.reset();
+	}
+	if (newGamepad)
+	{
+		m_gamepads.Add(deviceIndex, newGamepad);
+		m_joystickMap.Add(SDL_JoystickInstanceID(newGamepad->m_joystick), newGamepad.get());
+	}
+	return newGamepad;
+}
+
+Vector<String> Input::GetGamepadDeviceNames()
+{
+	Vector<String> ret;
+	uint32 numJoysticks = SDL_NumJoysticks();
+	for (uint32 i = 0; i < numJoysticks; i++)
+	{
+		SDL_Joystick* joystick = SDL_JoystickOpen(i);
+		if (!joystick)
+		{
+			continue;
+		}
+		String deviceName = SDL_JoystickName(joystick);
+		ret.Add(deviceName);
+
+		SDL_JoystickClose(joystick);
+	}
+	return ret;
+}
+
+ModifierKeys Input::GetModifierKeys()
+{
+	return m_modKeys;
+}
+
 String Input::GetControllerStateString() const
 {
-	if(m_gamepad)
+	if (m_gamepad)
 	{
 		String s = "Buttons\n";
-		for(uint32 i = 0; i < m_gamepad->NumButtons(); i++)
+		for (uint32 i = 0; i < m_gamepad->NumButtons(); i++)
 		{
 			s += Utility::Sprintf("  [%d]%d\n", i, m_gamepad->GetButton(i));
 		}
 		s += "\nAxes\n";
-		for(uint32 i = 0; i < m_gamepad->NumAxes(); i++)
+		for (uint32 i = 0; i < m_gamepad->NumAxes(); i++)
 		{
 			s += Utility::Sprintf("  [%d]%.2f\n", i, m_gamepad->GetAxis(i));
 		}
@@ -221,7 +261,7 @@ void Input::m_InitKeyboardMapping()
 	memset(m_buttonStates, 0, sizeof(m_buttonStates));
 	m_buttonMap.clear();
 
-	if(m_buttonDevice == InputDevice::Keyboard)
+	if (m_buttonDevice == InputDevice::Keyboard)
 	{
 		// Button mappings
 		m_buttonMap.Add(g_gameConfig.GetInt(GameConfigKeys::Key_BTS), Button::BT_S);
@@ -242,7 +282,7 @@ void Input::m_InitKeyboardMapping()
 		m_buttonMap.Add(g_gameConfig.GetInt(GameConfigKeys::Key_FX1Alt), Button::FX_1);
 	}
 
-	if(m_laserDevice == InputDevice::Keyboard)
+	if (m_laserDevice == InputDevice::Keyboard)
 	{
 		// Laser button mappings
 		m_buttonMap.Add(g_gameConfig.GetInt(GameConfigKeys::Key_Laser0Neg), Button::LS_0Neg);
@@ -255,7 +295,7 @@ void Input::m_InitKeyboardMapping()
 void Input::m_InitControllerMapping()
 {
 	m_controllerMap.clear();
-	if(m_buttonDevice == InputDevice::Controller)
+	if (m_buttonDevice == InputDevice::Controller)
 	{
 		m_controllerMap.Add(g_gameConfig.GetInt(GameConfigKeys::Controller_BTS), Button::BT_S);
 		m_controllerMap.Add(g_gameConfig.GetInt(GameConfigKeys::Controller_BT0), Button::BT_0);
@@ -270,10 +310,10 @@ void Input::m_InitControllerMapping()
 void Input::m_OnButtonInput(Button b, bool pressed)
 {
 	bool& state = m_buttonStates[(size_t)b];
-	if(state != pressed)
+	if (state != pressed)
 	{
 		state = pressed;
-		if(state)
+		if (state)
 		{
 			OnButtonPressed.Call(b);
 		}
@@ -284,18 +324,18 @@ void Input::m_OnButtonInput(Button b, bool pressed)
 	}
 
 	static Timer t;
-	if(b >= Button::LS_0Neg)
+	if (b >= Button::LS_0Neg)
 	{
 		int32 btnIdx = (int32)b - (int32)Button::LS_0Neg;
 		int32 laserIdx = btnIdx / 2;
 		// Set laser state based uppon the button that was pressed last
-		if(pressed)
+		if (pressed)
 			m_rawKeyLaserStates[laserIdx] = (btnIdx % 2) == 0 ? -m_keySensitivity : m_keySensitivity;
 		else // If a button was released check if the other one is still held
 		{
-			if(m_buttonStates[(int32)Button::LS_0Neg + laserIdx * 2])
+			if (m_buttonStates[(int32)Button::LS_0Neg + laserIdx * 2])
 				m_rawKeyLaserStates[laserIdx] = -m_keySensitivity;
-			else if(m_buttonStates[(int32)Button::LS_0Neg + laserIdx * 2 + 1])
+			else if (m_buttonStates[(int32)Button::LS_0Neg + laserIdx * 2 + 1])
 				m_rawKeyLaserStates[laserIdx] = m_keySensitivity;
 
 		}
@@ -306,33 +346,199 @@ void Input::m_OnGamepadButtonPressed(uint8 button)
 {
 	// Handle button mappings
 	auto it = m_controllerMap.equal_range(button);
-	for(auto it1 = it.first; it1 != it.second; it1++)
+	for (auto it1 = it.first; it1 != it.second; it1++)
 		m_OnButtonInput(it1->second, true);
 }
 void Input::m_OnGamepadButtonReleased(uint8 button)
 {
 	// Handle button mappings
 	auto it = m_controllerMap.equal_range(button);
-	for(auto it1 = it.first; it1 != it.second; it1++)
+	for (auto it1 = it.first; it1 != it.second; it1++)
 		m_OnButtonInput(it1->second, false);
 }
 
-void Input::OnKeyPressed(int32 key)
+void Input::m_HandleKeyEvent(SDL_Keycode code, uint8 newState, int32 repeat)
+{
+	SDL_Keymod m = SDL_GetModState();
+	m_modKeys = ModifierKeys::None;
+	if ((m & KMOD_ALT) != 0)
+	{
+		(uint8&)m_modKeys |= (uint8)ModifierKeys::Alt;
+	}
+	if ((m & KMOD_CTRL) != 0)
+	{
+		(uint8&)m_modKeys |= (uint8)ModifierKeys::Ctrl;
+	}
+	if ((m & KMOD_SHIFT) != 0)
+	{
+		(uint8&)m_modKeys |= (uint8)ModifierKeys::Shift;
+	}
+
+
+	uint8& currentState = m_keyStates[code];
+	if (currentState != newState)
+	{
+		currentState = newState;
+		if (newState == 1)
+		{
+			OnKeyPressed.Call(code);
+			m_OnKeyPressed(code);
+		}
+		else
+		{
+			OnKeyReleased.Call(code);
+			m_OnKeyReleased(code);
+		}
+	}
+	if (currentState == 1)
+	{
+		OnKeyRepeat.Call(code);
+	}
+}
+
+void Input::m_SdlPollEvents()
+{
+	// Update loop
+	Timer t;
+	SDL_Event evt;
+	while (SDL_PollEvent(&evt))
+	{
+		if (evt.type == SDL_EventType::SDL_KEYDOWN)
+		{
+			if (m_textComposition.composition.empty())
+			{
+				// Ignore key input when composition is being typed
+				m_HandleKeyEvent(evt.key.keysym.sym, 1, evt.key.repeat);
+			}
+		}
+		else if (evt.type == SDL_EventType::SDL_KEYUP)
+		{
+			m_HandleKeyEvent(evt.key.keysym.sym, 0, 0);
+		}
+		else if (evt.type == SDL_EventType::SDL_JOYBUTTONDOWN)
+		{
+			Gamepad_Impl** gp = m_joystickMap.Find(evt.jbutton.which);
+			if (gp)
+				gp[0]->HandleInputEvent(evt.jbutton.button, true);
+		}
+		else if (evt.type == SDL_EventType::SDL_JOYBUTTONUP)
+		{
+			Gamepad_Impl** gp = m_joystickMap.Find(evt.jbutton.which);
+			if (gp)
+				gp[0]->HandleInputEvent(evt.jbutton.button, false);
+		}
+		else if (evt.type == SDL_EventType::SDL_JOYAXISMOTION)
+		{
+			Gamepad_Impl** gp = m_joystickMap.Find(evt.jaxis.which);
+			if (gp)
+				gp[0]->HandleAxisEvent(evt.jaxis.axis, evt.jaxis.value);
+		}
+		else if (evt.type == SDL_EventType::SDL_JOYHATMOTION)
+		{
+			Gamepad_Impl** gp = m_joystickMap.Find(evt.jhat.which);
+			if (gp)
+				gp[0]->HandleHatEvent(evt.jhat.hat, evt.jhat.value);
+		}
+		else if (evt.type == SDL_EventType::SDL_MOUSEBUTTONDOWN)
+		{
+			switch (evt.button.button)
+			{
+			case SDL_BUTTON_LEFT:
+				OnMousePressed.Call(MouseButton::Left);
+				break;
+			case SDL_BUTTON_MIDDLE:
+				OnMousePressed.Call(MouseButton::Middle);
+				break;
+			case SDL_BUTTON_RIGHT:
+				OnMousePressed.Call(MouseButton::Right);
+				break;
+			}
+		}
+		else if (evt.type == SDL_EventType::SDL_MOUSEBUTTONUP)
+		{
+			switch (evt.button.button)
+			{
+			case SDL_BUTTON_LEFT:
+				OnMouseReleased.Call(MouseButton::Left);
+				break;
+			case SDL_BUTTON_MIDDLE:
+				OnMouseReleased.Call(MouseButton::Middle);
+				break;
+			case SDL_BUTTON_RIGHT:
+				OnMouseReleased.Call(MouseButton::Right);
+				break;
+			}
+		}
+		else if (evt.type == SDL_EventType::SDL_MOUSEWHEEL)
+		{
+			if (evt.wheel.direction == SDL_MOUSEWHEEL_FLIPPED)
+			{
+				OnMouseScroll.Call(evt.wheel.y);
+			}
+			else
+			{
+				OnMouseScroll.Call(-evt.wheel.y);
+			}
+		}
+		else if (evt.type == SDL_EventType::SDL_MOUSEMOTION)
+		{
+			OnMouseMotion.Call(evt.motion.xrel, evt.motion.yrel);
+			m_OnMouseMotion(evt.motion.xrel, evt.motion.yrel);
+		}
+		else if (evt.type == SDL_EventType::SDL_QUIT)
+		{
+			OnQuit.Call();
+		}
+		else if (evt.type == SDL_EventType::SDL_WINDOWEVENT)
+		{
+			if (evt.window.windowID == SDL_GetWindowID((SDL_Window*)m_window->Handle()))
+			{
+				if (evt.window.event == SDL_WindowEventID::SDL_WINDOWEVENT_SIZE_CHANGED)
+				{
+					Vector2i newSize(evt.window.data1, evt.window.data2);
+					OnResized.Call(newSize);
+				}
+			}
+		}
+		else if (evt.type == SDL_EventType::SDL_TEXTINPUT)
+		{
+			WString wstr = Utility::ConvertToWString(evt.text.text);
+			OnTextInput.Call(wstr);
+		}
+		else if (evt.type == SDL_EventType::SDL_TEXTEDITING)
+		{
+			SDL_Rect scr;
+			SDL_GetWindowPosition((SDL_Window*)m_window->Handle(), &scr.x, &scr.y);
+			SDL_GetWindowSize((SDL_Window*)m_window->Handle(), &scr.w, &scr.h);
+			SDL_SetTextInputRect(&scr);
+
+			m_textComposition.composition = Utility::ConvertToWString(evt.edit.text);
+			m_textComposition.cursor = evt.edit.start;
+			m_textComposition.selectionLength = evt.edit.length;
+			OnTextComposition.Call(m_textComposition);
+		}
+		OnAnyEvent.Call(evt);
+	}
+}
+
+
+
+void Input::m_OnKeyPressed(int32 key)
 {
 	// Handle button mappings
 	auto it = m_buttonMap.equal_range(key);
-	for(auto it1 = it.first; it1 != it.second; it1++)
+	for (auto it1 = it.first; it1 != it.second; it1++)
 		m_OnButtonInput(it1->second, true);
 }
-void Input::OnKeyReleased(int32 key)
+void Input::m_OnKeyReleased(int32 key)
 {
 	// Handle button mappings
 	auto it = m_buttonMap.equal_range(key);
-	for(auto it1 = it.first; it1 != it.second; it1++)
+	for (auto it1 = it.first; it1 != it.second; it1++)
 		m_OnButtonInput(it1->second, false);
 }
 
-void Input::OnMouseMotion(int32 x, int32 y)
+void Input::m_OnMouseMotion(int32 x, int32 y)
 {
 	m_mousePos[0] += x;
 	m_mousePos[1] += y;

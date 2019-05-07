@@ -2,17 +2,21 @@
 
 # Find files used for project
 file(GLOB Audio_include "Audio/*.hpp")
+file(GLOB Gamepad_include "Gamepad/*.hpp")
+file(GLOB Gamepad_src "Gamepad/*.cpp")
 file(GLOB Audio_src "Audio/*.cpp")
 file(GLOB GUI_include "GUI/*.hpp")
 file(GLOB nuk_include "nuklear/*.h")
 file(GLOB GUI_src "GUI/*.cpp" "Audio/minimp3.c")
 file(GLOB Main_src "*.cpp" "*.hpp"  "Resource.rc" 
-	${Audio_include} ${Audio_src} ${GUI_src} ${GUI_include} ${nuk_include})
+	${Audio_include} ${Audio_src} ${GUI_src} ${GUI_include} ${Gamepad_src} ${Gamepad_include} ${nuk_include})
 
 # Project filters
 
 source_group("Header Files\\Audio" FILES ${Audio_include})
 source_group("Source Files\\Audio" FILES ${Audio_src})
+source_group("Header Files\\Gamepad" FILES ${Gamepad_include})
+source_group("Source Files\\Gamepad" FILES ${Gamepad_src})
 source_group("Header Files\\nuklear" FILES ${nuk_include})
 source_group("Header Files\\GUI" FILES ${GUI_include})
 source_group("Source Files\\GUI" FILES ${GUI_src})

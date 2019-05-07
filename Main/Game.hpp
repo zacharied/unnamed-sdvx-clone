@@ -54,8 +54,6 @@ public:
 	// Samples of the gauge for the performance graph
 	virtual float* GetGaugeSamples() = 0;
 	virtual GameFlags GetFlags() = 0;
-	// Map jacket image
-	virtual Texture GetJacketImage() = 0;
 	// Difficulty data
 	virtual const DifficultyIndex& GetDifficultyIndex() const = 0;
 	// The beatmap
