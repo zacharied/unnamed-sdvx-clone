@@ -244,7 +244,6 @@ public:
 
 		const BeatmapSettings& mapSettings = m_beatmap->GetMapSettings();
 
-		m_gaugeSamples[256] = { 0.0f };
 		MapTime firstObjectTime = m_beatmap->GetLinearObjects().front()->time;
 		ObjectState *const* lastObj = &m_beatmap->GetLinearObjects().back();
 		while ((*lastObj)->type == ObjectType::Event && lastObj != &m_beatmap->GetLinearObjects().front())
@@ -418,6 +417,8 @@ public:
 			lua_pushstring(m_lua, "scoreReplays");
 			lua_newtable(m_lua);
 			lua_settable(m_lua, -3);
+
+
 			lua_pushstring(m_lua, "critLine");
 			lua_newtable(m_lua);
 			lua_pushstring(m_lua, "cursors");
@@ -430,6 +431,10 @@ public:
 				lua_seti(m_lua, -2, 1);
 			}
 			lua_settable(m_lua, -3); // cursors -> critLine
+
+			lua_pushstring(m_lua, "line");
+			lua_newtable(m_lua);
+			lua_settable(m_lua, -3); // line -> critLine
 			lua_settable(m_lua, -3); // critLine -> gameplay
 
 			lua_pushstring(m_lua, "multiplayer");
@@ -451,7 +456,7 @@ public:
 			pushFloatToTable("hiddenCutoff", m_track->hiddenCutoff);
 			pushFloatToTable("suddenFade", m_track->suddenFadewindow);
 			pushFloatToTable("suddenCutoff", m_track->suddenCutoff);
-
+			m_setLuaHolds();
 			lua_setglobal(m_lua, "gameplay");
 		}
 
@@ -1139,6 +1144,8 @@ public:
 		//set lua
 		lua_getglobal(m_lua, "gameplay");
 
+		m_setLuaHolds();
+
 		//set autoplay here as it's not set during the creation of the gameplay
 		lua_pushstring(m_lua, "autoplay");
 		lua_pushboolean(m_lua, m_scoring.autoplay);
@@ -1225,8 +1232,8 @@ public:
 			lua_getfield(m_lua, -1, "critLine");
 
 			Vector2 critPos = m_camera.Project(m_camera.critOrigin.TransformPoint(Vector3(0, 0, 0)));
-			Vector2 leftPos = m_camera.Project(m_camera.critOrigin.TransformPoint(Vector3(-1, 0, 0)));
-			Vector2 rightPos = m_camera.Project(m_camera.critOrigin.TransformPoint(Vector3(1, 0, 0)));
+			Vector2 leftPos = m_camera.Project(m_camera.critOrigin.TransformPoint(Vector3(-m_track->trackWidth / 2.0, 0, 0)));
+			Vector2 rightPos = m_camera.Project(m_camera.critOrigin.TransformPoint(Vector3(m_track->trackWidth / 2.0, 0, 0)));
 			Vector2 line = rightPos - leftPos;
 
 			lua_pushstring(m_lua, "x"); // x screen position
@@ -1236,6 +1243,25 @@ public:
 			lua_pushstring(m_lua, "y"); // y screen position
 			lua_pushnumber(m_lua, critPos.y);
 			lua_settable(m_lua, -3);
+
+			//track x critline corners
+			lua_getfield(m_lua, -1, "line");
+			{
+				lua_pushstring(m_lua, "x1");
+				lua_pushnumber(m_lua, leftPos.x);
+				lua_settable(m_lua, -3);
+				lua_pushstring(m_lua, "y1");
+				lua_pushnumber(m_lua, leftPos.y);
+				lua_settable(m_lua, -3);
+
+				lua_pushstring(m_lua, "x2");
+				lua_pushnumber(m_lua, rightPos.x);
+				lua_settable(m_lua, -3);
+				lua_pushstring(m_lua, "y2");
+				lua_pushnumber(m_lua, rightPos.y);
+				lua_settable(m_lua, -3);
+			}
+			lua_pop(m_lua, 1);
 
 			lua_pushstring(m_lua, "rotation"); // rotation based on laser roll
 			lua_pushnumber(m_lua, -atan2f(line.y, line.x));
@@ -1857,6 +1883,31 @@ public:
 		scoreData.gauge = m_scoring.currentGauge;
 		scoreData.score = m_scoring.CalculateCurrentScore();
 		return Scoring::CalculateBadge(scoreData);
+	}
+
+	void m_setLuaHolds()
+	{
+		//button
+		lua_pushstring(m_lua, "noteHeld");
+		lua_newtable(m_lua);
+		for (size_t i = 0; i < 6; i++)
+		{
+			lua_pushnumber(m_lua, i + 1);
+			lua_pushboolean(m_lua, m_scoring.IsObjectHeld(i));
+			lua_settable(m_lua, -3);
+		}
+		lua_settable(m_lua, -3);
+
+		//laser
+		lua_pushstring(m_lua, "laserActive");
+		lua_newtable(m_lua);
+		for (size_t i = 0; i < 2; i++)
+		{
+			lua_pushnumber(m_lua, i + 1);
+			lua_pushboolean(m_lua, m_scoring.IsObjectHeld(6 + i));
+			lua_settable(m_lua, -3);
+		}
+		lua_settable(m_lua, -3);
 	}
 
 	// Skips ahead to the right before the first object in the map
