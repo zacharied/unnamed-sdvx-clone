@@ -281,21 +281,20 @@ public:
 	{
 		for(auto m : maps)
 		{
-			// TODO(local): don't hard-code the id calc here, maybe make it a utility function?
-			SongSelectIndex index = m_maps.at(m->selectId * 10);
+			SongSelectIndex index(m);
 			m_maps.erase(index.id);
 		}
 		if(!m_maps.Contains(m_currentlySelectedId))
 		{
 			AdvanceSelection(1);
 		}
+		m_SetLuaMaps(true);
 	}
 	void OnMapsUpdated(Vector<MapIndex*> maps)
 	{
 		for(auto m : maps)
 		{
-			// TODO(local): don't hard-code the id calc here, maybe make it a utility function?
-			SongSelectIndex index = m_maps.at(m->selectId * 10);
+			SongSelectIndex index(m);
 		}
 	}
 	void OnMapsCleared(Map<int32, MapIndex*> newList)
@@ -1098,6 +1097,7 @@ public:
 		m_mapDatabase.OnMapsAdded.Add(m_selectionWheel.GetData(), &SelectionWheel::OnMapsAdded);
 		m_mapDatabase.OnMapsUpdated.Add(m_selectionWheel.GetData(), &SelectionWheel::OnMapsUpdated);
 		m_mapDatabase.OnMapsCleared.Add(m_selectionWheel.GetData(), &SelectionWheel::OnMapsCleared);
+		m_mapDatabase.OnMapsRemoved.Add(m_selectionWheel.GetData(), &SelectionWheel::OnMapsRemoved);
 		m_mapDatabase.OnSearchStatusUpdated.Add(m_selectionWheel.GetData(), &SelectionWheel::OnSearchStatusUpdated);
 		m_mapDatabase.StartSearching();
 
@@ -1135,7 +1135,7 @@ public:
 		// Set current preview audio
 		String audioPath = mapRootPath + Path::sep + diff->settings.audioNoFX;
 
-		PreviewParams params = { audioPath, diff->settings.previewOffset, diff->settings.previewDuration };
+		PreviewParams params = { audioPath, static_cast<uint32>(diff->settings.previewOffset), static_cast<uint32>(diff->settings.previewDuration) };
 
 		/* A lot of pre-effected charts use different audio files for each difficulty; these
 		 * files differ only in their effects, so the preview offset and duration remain the
